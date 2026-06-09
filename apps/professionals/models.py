@@ -1,4 +1,5 @@
 """Professional models — médicos, enfermeros, etc."""
+from django.conf import settings
 from django.db import models
 
 from apps.core.models import ActiveMixin, TimeStampedMixin
@@ -32,6 +33,14 @@ class Professional(TimeStampedMixin, ActiveMixin, models.Model):
     email = models.EmailField(blank=True, verbose_name="email")
     phone = models.CharField(
         max_length=20, blank=True, verbose_name="teléfono"
+    )
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="usuario del sistema",
+        help_text="Usuario del sistema asociado a este profesional para autenticación y scoping",
     )
     resources = models.ManyToManyField(
         Resource,

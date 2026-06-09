@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Editar{% else %}Nuevo{% endif %} Turno{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">
+    {% if is_edit %}Editar Turno{% else %}Nuevo Turno{% endif %}
+  </h1>
+
+  <div class="bg-white shadow rounded-lg p-6">
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {% if not is_edit %}
+        {# ── Campos de selección dinámica (solo en creación) ── #}
+        <div>
+          <label for="{{ form.resource.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.resource.label }}
+          </label>
+          {{ form.resource }}
+          {% if form.resource.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.resource.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.date.label }}
+          </label>
+          {{ form.date }}
+          {% if form.date.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.date.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div id="profesional-container">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Profesional</label>
+          <select name="professional" id="id_professional" class="form-input" disabled>
+            <option value="">Seleccioná un recurso y fecha primero</option>
+          </select>
+        </div>
+
+        <div id="slot-container">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Horario</label>
+          <select name="slot" id="id_slots" class="form-input" disabled>
+            <option value="">Seleccioná un profesional primero</option>
+          </select>
+        </div>
+      {% endif %}
+
+      {# ── Datos del paciente ── #}
+      <div>
+        <label for="{{ form.patient_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.patient_name.label }}
+        </label>
+        {{ form.patient_name }}
+        {% if form.patient_name.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.patient_name.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.patient_dni.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.patient_dni.label }}
+        </label>
+        {{ form.patient_dni }}
+        {% if form.patient_dni.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.patient_dni.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.patient_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.patient_phone.label }}
+        </label>
+        {{ form.patient_phone }}
+        {% if form.patient_phone.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.patient_phone.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.patient_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.patient_email.label }}
+        </label>
+        {{ form.patient_email }}
+        {% if form.patient_email.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.patient_email.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.comments.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.comments.label }}
+        </label>
+        {{ form.comments }}
+        {% if form.comments.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.comments.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      {# ── Hidden fields ── #}
+      {{ form.start_time }}
+      {{ form.end_time }}
+      {{ form.status }}
+
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <a href="{% url 'appointments:list' %}"
+           class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          Cancelar
+        </a>
+        <button type="submit"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">
+          {% if is_edit %}Guardar Cambios{% else %}Crear Turno{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const resourceSelect = document.getElementById('id_resource');
+  const dateInput = document.getElementById('id_date');
+  const professionalContainer = document.getElementById('profesional-container');
+  const slotContainer = document.getElementById('slot-container');
+
+  function updateProfesionales() {
+    const resourceId = resourceSelect?.value;
+    const date = dateInput?.value;
+    if (resourceId && date) {
+      fetch(`/appointments/htmx/profesionales-por-recurso/${resourceId}/?date=${date}`)
+        .then(r => r.text())
+        .then(html => {
+          professionalContainer.innerHTML = '<label class="block text-sm font-medium text-gray-700 mb-1">Profesional</label>' + html;
+          // Reset slot container when professional changes
+          slotContainer.innerHTML = '<label class="block text-sm font-medium text-gray-700 mb-1">Horario</label><select name="slot" id="id_slots" class="form-input" disabled><option value="">Seleccioná un profesional primero</option></select>';
+        });
+    }
+  }
+
+  function updateHorarios() {
+    const profSelect = document.getElementById('id_professional');
+    const resourceId = resourceSelect?.value;
+    const date = dateInput?.value;
+    const profId = profSelect?.value;
+    if (profId && date && resourceId && profId !== '') {
+      fetch(`/appointments/htmx/horarios-por-profesional/${profId}/?date=${date}&resource_id=${resourceId}`)
+        .then(r => r.text())
+        .then(html => {
+          slotContainer.innerHTML = '<label class="block text-sm font-medium text-gray-700 mb-1">Horario</label>' + html;
+        });
+    }
+  }
+
+  if (resourceSelect) resourceSelect.addEventListener('change', updateProfesionales);
+  if (dateInput) dateInput.addEventListener('change', updateProfesionales);
+
+  // Delegate for HTMX-loaded selects
+  document.addEventListener('change', function(e) {
+    if (e.target.id === 'id_professional') updateHorarios();
+    if (e.target.id === 'id_slots') {
+      const selected = e.target.options[e.target.selectedIndex];
+      if (selected && selected.dataset.startTime && selected.dataset.endTime) {
+        document.getElementById('id_start_time').value = selected.dataset.startTime;
+        document.getElementById('id_end_time').value = selected.dataset.endTime;
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

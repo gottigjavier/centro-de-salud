@@ -1,0 +1,20 @@
+{% comment %}
+  Partial: Badge de estado reutilizable para Appointment.
+  Uso: {% include "appointments/partials/_status_badge.html" with status=appointment.status %}
+{% endcomment %}
+<span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold
+  {% if status == 'scheduled' %}bg-blue-100 text-blue-800
+  {% elif status == 'confirmed' %}bg-green-100 text-green-800
+  {% elif status == 'in_progress' %}bg-yellow-100 text-yellow-800
+  {% elif status == 'completed' %}bg-gray-100 text-gray-800
+  {% elif status == 'cancelled' %}bg-red-100 text-red-800
+  {% elif status == 'no_show' %}bg-orange-100 text-orange-800
+  {% endif %}">
+  {% if status == 'scheduled' %}Programado
+  {% elif status == 'confirmed' %}Confirmado
+  {% elif status == 'in_progress' %}En atención
+  {% elif status == 'completed' %}Completado
+  {% elif status == 'cancelled' %}Cancelado
+  {% elif status == 'no_show' %}No asistió
+  {% endif %}
+</span>

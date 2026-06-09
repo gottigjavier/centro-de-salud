@@ -1,0 +1,10 @@
+<select name="professional" id="id_professional" class="form-input"
+        hx-trigger="change"
+        hx-target="#slot-container">
+  <option value="">-- Seleccioná un profesional --</option>
+  {% for p in professionals %}
+    <option value="{{ p.pk }}">{{ p.first_name }} {{ p.last_name }} ({{ p.specialty|default:"Sin esp." }})</option>
+  {% empty %}
+    <option value="">-- No hay profesionales disponibles --</option>
+  {% endfor %}
+</select>

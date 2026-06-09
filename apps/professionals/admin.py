@@ -7,10 +7,10 @@ from .models import Professional, ProfessionalResourceAssignment
 class ProfessionalAdmin(admin.ModelAdmin):
     list_display = [
         "last_name", "first_name", "specialty", "license_number",
-        "phone", "is_active",
+        "phone", "user", "is_active",
     ]
     list_filter = ["specialty", "is_active"]
-    search_fields = ["last_name", "first_name", "license_number"]
+    search_fields = ["last_name", "first_name", "license_number", "user__email"]
     filter_horizontal = ("resources",)
 
 

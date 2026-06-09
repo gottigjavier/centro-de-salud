@@ -89,10 +89,17 @@ class Appointment(TimeStampedMixin, models.Model):
     comments = models.TextField(
         blank=True, verbose_name="comentarios"
     )
+    cancellation_reason = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="motivo de cancelación",
+        help_text="Motivo obligatorio cuando se cancela el turno",
+    )
     created_by = models.ForeignKey(
         "accounts.User",
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="appointments_created",
         verbose_name="creado por",
     )
@@ -159,10 +166,17 @@ class Appointment(TimeStampedMixin, models.Model):
                 else:
                     errors["start_time"] = "No se pueden crear turnos en el pasado."
 
+        # Si faltan campos esenciales (resource, date, prof, time), salimos
+        # Usamos _id para FK para evitar RelatedObjectDoesNotExist al acceder
+        if not self.resource_id or not self.date:
+            if errors:
+                raise ValidationError(errors)
+            return
+
         # V-002: Recurso habilitado ese día
         schedules = ResourceSchedule.objects.filter(
             resource=self.resource,
-            day_of_week=self.date.weekday() if self.date else -1,
+            day_of_week=self.date.weekday(),
             is_active=True,
         )
         if not schedules.exists():
@@ -172,7 +186,7 @@ class Appointment(TimeStampedMixin, models.Model):
             raise ValidationError(errors)
 
         # V-003 + V-004: Horario dentro del rango y duración correcta
-        if self.date and self.start_time and self.end_time:
+        if self.start_time and self.end_time:
             matching_schedule = None
             for schedule in schedules:
                 if schedule.start_time <= self.start_time and self.end_time <= schedule.end_time:
@@ -208,7 +222,7 @@ class Appointment(TimeStampedMixin, models.Model):
             )
 
         # ── V-006: Capacidad del slot ──────────────────────────────────
-        if self._valid_schedule:
+        if getattr(self, '_valid_schedule', None):
             current_count = Appointment.objects.filter(
                 resource=self.resource,
                 date=self.date,
@@ -227,28 +241,34 @@ class Appointment(TimeStampedMixin, models.Model):
                 )
 
         # ── V-007: Solapamiento con otros turnos ───────────────────────
-        overlaps = Appointment.objects.filter(
-            resource=self.resource,
-            date=self.date,
-            start_time__lt=self.end_time,
-            end_time__gt=self.start_time,
-        ).exclude(
-            status__in=[
-                AppointmentStatus.CANCELLED,
-                AppointmentStatus.NO_SHOW,
-            ]
-        ).exclude(pk=self.pk)
+        if self.start_time and self.end_time:
+            overlaps = Appointment.objects.filter(
+                resource=self.resource,
+                date=self.date,
+                start_time__lt=self.end_time,
+                end_time__gt=self.start_time,
+            ).exclude(
+                status__in=[
+                    AppointmentStatus.CANCELLED,
+                    AppointmentStatus.NO_SHOW,
+                ]
+            ).exclude(pk=self.pk)
 
-        if overlaps.exists():
-            conflicting = overlaps.first()
-            raise ValidationError(
-                f"El turno se superpone con otro turno existente: "
-                f"'{conflicting.patient_name}' de {conflicting.start_time} "
-                f"a {conflicting.end_time}."
-            )
+            if overlaps.exists():
+                conflicting = overlaps.first()
+                raise ValidationError(
+                    f"El turno se superpone con otro turno existente: "
+                    f"'{conflicting.patient_name}' de {conflicting.start_time} "
+                    f"a {conflicting.end_time}."
+                )
 
         # ── V-008: Profesional asignado al recurso ─────────────────────
-        if getattr(settings, "APPOINTMENT_VALIDATE_PROFESSIONAL_ASSIGNMENT", True):
+        if (
+            getattr(settings, "APPOINTMENT_VALIDATE_PROFESSIONAL_ASSIGNMENT", True)
+            and self.professional_id
+            and self.start_time
+            and self.end_time
+        ):
             from apps.professionals.models import ProfessionalResourceAssignment
 
             has_assignment = ProfessionalResourceAssignment.objects.filter(

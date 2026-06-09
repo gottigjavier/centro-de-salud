@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Detalle del Turno{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  {# ── Header ──────────────────────────────────────────────────── #}
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-gray-900">{{ appointment.patient_name }}</h1>
+      {% include "appointments/partials/_status_badge.html" with status=appointment.status %}
+    </div>
+    <div class="flex gap-2">
+      {# Transition buttons — iteramos transiciones válidas #}
+      {% for transition in valid_transitions %}
+        {% if transition == 'cancelled' %}
+          {# Cancelación va al view dedicado con form #}
+          {% if is_admin or is_secretary or is_professional %}
+            <a href="{% url 'appointments:cancel' appointment.pk %}"
+               class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-colors">
+              Cancelar
+            </a>
+          {% endif %}
+        {% elif transition == 'confirmed' %}
+          {% include "appointments/partials/_transition_button.html" with target_status=transition label="Confirmar" %}
+        {% elif transition == 'in_progress' %}
+          {% include "appointments/partials/_transition_button.html" with target_status=transition label="Iniciar" %}
+        {% elif transition == 'completed' %}
+          {% include "appointments/partials/_transition_button.html" with target_status=transition label="Completar" %}
+        {% elif transition == 'no_show' %}
+          {% if is_admin or is_secretary %}
+            {% include "appointments/partials/_transition_button.html" with target_status=transition label="No asistió" %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {# Editar — solo admin/secretary, no en estados terminales #}
+      {% if is_admin or is_secretary %}
+        {% if appointment.status != 'cancelled' and appointment.status != 'completed' and appointment.status != 'no_show' %}
+          <a href="{% url 'appointments:update' appointment.pk %}"
+             class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors">
+            Editar
+          </a>
+        {% endif %}
+      {% endif %}
+
+      <a href="{% url 'appointments:list' %}"
+         class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        Volver a lista
+      </a>
+    </div>
+  </div>
+
+  {# ── Info del Paciente ───────────────────────────────────────── #}
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Datos del Paciente</h2>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Nombre completo</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.patient_name }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">DNI</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.patient_dni }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.patient_phone|default:"—" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Email</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.patient_email|default:"—" }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  {# ── Info del Turno ──────────────────────────────────────────── #}
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Detalle del Turno</h2>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Recurso</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.resource.name }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Profesional</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.professional }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Fecha</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.date|date:"d/m/Y" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Horario</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Estado</dt>
+        <dd class="mt-1">
+          {% include "appointments/partials/_status_badge.html" with status=appointment.status %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Creado por</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ appointment.created_by|default:"—" }}</dd>
+      </div>
+    </dl>
+
+    {% if appointment.comments %}
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <dt class="text-sm font-medium text-gray-500 mb-1">Comentarios</dt>
+        <dd class="text-sm text-gray-900">{{ appointment.comments|linebreaks }}</dd>
+      </div>
+    {% endif %}
+
+    {% if appointment.cancellation_reason %}
+      <div class="mt-4 pt-4 border-t border-gray-200">
+        <dt class="text-sm font-medium text-red-600 mb-1">Motivo de cancelación</dt>
+        <dd class="text-sm text-gray-900">{{ appointment.cancellation_reason|linebreaks }}</dd>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

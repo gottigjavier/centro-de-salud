@@ -1,0 +1,13 @@
+{% comment %}
+  Partial: Botón de transición de estado para Appointment.
+  Uso: {% include "appointments/partials/_transition_button.html" with target_status=status_value label="Confirmar" %}
+{% endcomment %}
+<form method="post"
+      action="{% url 'appointments:transition' appointment.pk target_status %}"
+      class="inline">
+  {% csrf_token %}
+  <button type="submit"
+          class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors">
+    {{ label }}
+  </button>
+</form>

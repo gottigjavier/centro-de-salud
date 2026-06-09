@@ -1,0 +1,12 @@
+<select name="slot" id="id_slots" class="form-input">
+  <option value="">-- Seleccioná un horario --</option>
+  {% for start, end in slots %}
+    <option value="{{ start|time:'H:i' }}"
+            data-start-time="{{ start|time:'H:i' }}"
+            data-end-time="{{ end|time:'H:i' }}">
+      {{ start|time:'H:i' }} - {{ end|time:'H:i' }}
+    </option>
+  {% empty %}
+    <option value="">-- No hay horarios disponibles --</option>
+  {% endfor %}
+</select>

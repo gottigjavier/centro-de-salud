@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Profesionales{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">Profesionales</h1>
+  </div>
+  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    {% for professional in professionals %}
+    <div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+      <h3 class="text-lg font-semibold text-gray-900">{{ professional.last_name }}, {{ professional.first_name }}</h3>
+      <p class="text-sm text-gray-500 mt-1">{{ professional.get_specialty_display }}</p>
+      <p class="text-sm text-gray-400 mt-1">Mat: {{ professional.license_number }}</p>
+      <div class="mt-4">
+        {% if professional.is_active %}
+          <span class="text-green-600 text-sm font-medium">Activo</span>
+        {% else %}
+          <span class="text-red-600 text-sm font-medium">Inactivo</span>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 text-gray-400">
+      No hay profesionales registrados.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Calendario de Turnos{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">Calendario de Turnos</h1>
+    <div class="flex space-x-2">
+      <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        + Nuevo Turno
+      </button>
+    </div>
+  </div>
+
+  {# Leyenda de ocupación #}
+  <div class="flex space-x-6 text-sm">
+    <span class="flex items-center">
+      <span class="w-3 h-3 rounded-full bg-green-500 inline-block mr-2"></span>
+      Baja ocupación (&lt; 50%)
+    </span>
+    <span class="flex items-center">
+      <span class="w-3 h-3 rounded-full bg-yellow-500 inline-block mr-2"></span>
+      Ocupación media (50-80%)
+    </span>
+    <span class="flex items-center">
+      <span class="w-3 h-3 rounded-full bg-red-500 inline-block mr-2"></span>
+      Alta ocupación (&gt; 80%)
+    </span>
+  </div>
+
+  {# Placeholder: grid calendario #}
+  <div class="bg-white rounded-lg shadow p-8 text-center text-gray-400">
+    <p class="text-lg">Vista calendario</p>
+    <p class="text-sm mt-2">Implementar con grid CSS según rol y permisos</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+<tr class="hover:bg-gray-50">
+  <td class="px-6 py-4 text-sm text-gray-900">{{ resource.name }}</td>
+  <td class="px-6 py-4 text-sm text-gray-500">{{ resource.get_type_display }}</td>
+  <td class="px-6 py-4 text-sm text-gray-500">{{ resource.location|default:"—" }}</td>
+  <td class="px-6 py-4">
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+      {% if resource.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+      {{ resource.is_active|yesno:"Activo,Inactivo" }}
+    </span>
+  </td>
+  <td class="px-6 py-4 text-sm space-x-2">
+    <a href="{% url 'resources:detail' resource.pk %}" class="text-blue-600 hover:text-blue-800">Ver</a>
+    {% if is_admin %}
+      <a href="{% url 'resources:update' resource.pk %}" class="text-indigo-600 hover:text-indigo-800">Editar</a>
+      <button hx-post="{% url 'resources:toggle_active' resource.pk %}"
+              hx-target="closest tr"
+              hx-swap="outerHTML"
+              hx-confirm="¿Estás seguro de {% if resource.is_active %}desactivar{% else %}activar{% endif %} {{ resource.name }}?"
+              class="{% if resource.is_active %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %} bg-transparent border-0 cursor-pointer text-sm font-medium">
+        {{ resource.is_active|yesno:"Desactivar,Activar" }}
+      </button>
+    {% endif %}
+  </td>
+</tr>

@@ -1,0 +1,37 @@
+<form hx-post="{% url 'resources:schedule_add' resource.pk %}"
+      hx-target="#schedule-list-container"
+      hx-swap="innerHTML"
+      class="space-y-3">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <div class="grid grid-cols-2 gap-3">
+    {% for field in form %}
+      <div>
+        <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700 mb-1">
+          {{ field.label }}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          <p class="mt-1 text-xs text-red-600">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="flex justify-end gap-2">
+    <button type="button"
+            class="schedule-form-cancel px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+      Cancelar
+    </button>
+    <button type="submit"
+            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">
+      Agregar Horario
+    </button>
+  </div>
+</form>

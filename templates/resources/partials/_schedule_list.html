@@ -1,0 +1,39 @@
+{% if schedules %}
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Día</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Apertura</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cierre</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duración</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cupo x Slot</th>
+        {% if is_admin %}
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      {% for sched in schedules %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-sm text-gray-900">{{ sched.get_day_of_week_display }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ sched.start_time|time:"H:i" }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ sched.end_time|time:"H:i" }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ sched.slot_duration }} min</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ sched.max_appointments_per_slot }}</td>
+          {% if is_admin %}
+            <td class="px-4 py-3 text-sm">
+              <button hx-post="{% url 'resources:schedule_delete' sched.pk %}"
+                      hx-target="#schedule-list-container"
+                      hx-confirm="¿Eliminar este horario?"
+                      class="text-red-600 hover:text-red-800 text-sm font-medium">
+                Eliminar
+              </button>
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="text-gray-500 text-sm py-4">No hay horarios configurados.</p>
+{% endif %}

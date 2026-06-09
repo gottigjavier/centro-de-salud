@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Mi Perfil — Turnos{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold text-gray-900 mb-6">Mi Perfil</h1>
+  <div class="bg-white shadow rounded-lg p-6 space-y-4">
+    <div>
+      <span class="text-sm text-gray-500">Email</span>
+      <p class="text-gray-900">{{ user.email }}</p>
+    </div>
+    <div>
+      <span class="text-sm text-gray-500">Nombre</span>
+      <p class="text-gray-900">{{ user.get_full_name|default:"—" }}</p>
+    </div>
+    <div>
+      <span class="text-sm text-gray-500">Rol</span>
+      <p class="text-gray-900">{{ user.get_role_display }}</p>
+    </div>
+    <div>
+      <span class="text-sm text-gray-500">Teléfono</span>
+      <p class="text-gray-900">{{ user.phone|default:"—" }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

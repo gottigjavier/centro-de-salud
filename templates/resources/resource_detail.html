@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{{ resource.name }} — Recursos{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  {# ── Header ──────────────────────────────────────────────────── #}
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-gray-900">{{ resource.name }}</h1>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+        {% if resource.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+        {{ resource.is_active|yesno:"Activo,Inactivo" }}
+      </span>
+    </div>
+    <div class="flex gap-2">
+      {% if is_admin %}
+        <a href="{% url 'resources:update' resource.pk %}"
+           class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors">
+          Editar
+        </a>
+      {% endif %}
+      <a href="{% url 'resources:list' %}"
+         class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        Volver a lista
+      </a>
+    </div>
+  </div>
+
+  {# ── Resource Info Card ──────────────────────────────────────── #}
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Tipo</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ resource.get_type_display }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Ubicación</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ resource.location|default:"—" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Capacidad máxima</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ resource.max_capacity }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Estado</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ resource.is_active|yesno:"Activo,Inactivo" }}</dd>
+      </div>
+      {% if resource.description %}
+        <div class="sm:col-span-2">
+          <dt class="text-sm font-medium text-gray-500">Descripción</dt>
+          <dd class="mt-1 text-sm text-gray-900">{{ resource.description|linebreaks }}</dd>
+        </div>
+      {% endif %}
+    </dl>
+  </div>
+
+  {# ── Schedules Section ───────────────────────────────────────── #}
+  <div class="bg-white shadow rounded-lg p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-gray-900">Horarios de Atención</h2>
+      {% if is_admin %}
+        <button id="show-schedule-form-btn"
+                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">
+          + Agregar Horario
+        </button>
+      {% endif %}
+    </div>
+
+    <div id="schedule-list-container">
+      {% include "resources/partials/_schedule_list.html" %}
+    </div>
+
+    {% if is_admin %}
+      <div id="schedule-form-container" class="mt-4" style="display: none;">
+        {% include "resources/partials/_schedule_form.html" %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function() {
+    var showBtn = document.getElementById('show-schedule-form-btn');
+    var formContainer = document.getElementById('schedule-form-container');
+
+    if (showBtn && formContainer) {
+      showBtn.addEventListener('click', function() {
+        formContainer.style.display = '';
+      });
+    }
+
+    // Ocultar form luego de agregar horario exitosamente
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+      if (evt.detail.target && evt.detail.target.id === 'schedule-list-container') {
+        if (formContainer) {
+          formContainer.style.display = 'none';
+        }
+      }
+    });
+
+    // Cancel button: ocultar y limpiar form
+    document.body.addEventListener('click', function(evt) {
+      if (evt.target.classList.contains('schedule-form-cancel') && formContainer) {
+        formContainer.style.display = 'none';
+      }
+    });
+  })();
+</script>
+{% endblock %}

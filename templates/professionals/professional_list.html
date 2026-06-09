@@ -2,29 +2,81 @@
 {% block title %}Profesionales{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
+<div class="max-w-5xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-900">Profesionales</h1>
+    {% if is_admin %}
+      <a href="{% url 'professionals:create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+        + Nuevo Profesional
+      </a>
+    {% endif %}
   </div>
-  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-    {% for professional in professionals %}
-    <div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
-      <h3 class="text-lg font-semibold text-gray-900">{{ professional.last_name }}, {{ professional.first_name }}</h3>
-      <p class="text-sm text-gray-500 mt-1">{{ professional.get_specialty_display }}</p>
-      <p class="text-sm text-gray-400 mt-1">Mat: {{ professional.license_number }}</p>
-      <div class="mt-4">
-        {% if professional.is_active %}
-          <span class="text-green-600 text-sm font-medium">Activo</span>
-        {% else %}
-          <span class="text-red-600 text-sm font-medium">Inactivo</span>
-        {% endif %}
-      </div>
-    </div>
-    {% empty %}
-    <div class="col-span-full text-center py-12 text-gray-400">
-      No hay profesionales registrados.
-    </div>
-    {% endfor %}
+
+  <div class="bg-white shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Apellido y Nombre</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Especialidad</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Matrícula</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Activo</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for p in professionals %}
+          <tr class="hover:bg-gray-50 {% if not p.is_active %}opacity-50{% endif %}">
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ p.last_name }}, {{ p.first_name }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{ p.get_specialty_display }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{ p.license_number }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500">{{ p.email|default:"—" }}</td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                {% if p.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {{ p.is_active|yesno:"Activo,Inactivo" }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm space-x-2">
+              <a href="{% url 'professionals:detail' p.pk %}" class="text-blue-600 hover:text-blue-800">Ver</a>
+              {% if is_admin %}
+                <a href="{% url 'professionals:update' p.pk %}" class="text-indigo-600 hover:text-indigo-800">Editar</a>
+                <a href="{% url 'professionals:toggle_active' p.pk %}"
+                   class="{% if p.is_active %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %}">
+                  {{ p.is_active|yesno:"Desactivar,Activar" }}
+                </a>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-8 text-center text-gray-500">No hay profesionales registrados.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+
+  {% if professionals.paginator.num_pages > 1 %}
+    <div class="mt-4 flex justify-center items-center gap-2">
+      {% if professionals.has_previous %}
+        <a href="?page={{ professionals.previous_page_number }}"
+           class="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+          Anterior
+        </a>
+      {% endif %}
+
+      <span class="text-sm text-gray-600">
+        Página {{ professionals.number }} de {{ professionals.paginator.num_pages }}
+      </span>
+
+      {% if professionals.has_next %}
+        <a href="?page={{ professionals.next_page_number }}"
+           class="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+          Siguiente
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
 </div>
 {% endblock %}

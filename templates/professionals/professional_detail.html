@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ professional.last_name }}, {{ professional.first_name }} — Profesionales{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  {# ── Header ──────────────────────────────────────────────────── #}
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-gray-900">{{ professional.last_name }}, {{ professional.first_name }}</h1>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+        {% if professional.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+        {{ professional.is_active|yesno:"Activo,Inactivo" }}
+      </span>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        {{ professional.get_specialty_display }}
+      </span>
+    </div>
+    <div class="flex gap-2">
+      {% if is_admin %}
+        <a href="{% url 'professionals:update' professional.pk %}"
+           class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors">
+          Editar
+        </a>
+      {% endif %}
+      <a href="{% url 'professionals:list' %}"
+         class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        Volver a lista
+      </a>
+    </div>
+  </div>
+
+  {# ── Professional Info Card ──────────────────────────────────── #}
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Especialidad</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ professional.get_specialty_display }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Matrícula</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ professional.license_number }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Email</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ professional.email|default:"—" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ professional.phone|default:"—" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Creado</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ professional.created_at|date:"d/m/Y H:i" }}</dd>
+      </div>
+      <div>
+        <dt class="text-sm font-medium text-gray-500">Actualizado</dt>
+        <dd class="mt-1 text-sm text-gray-900">{{ professional.updated_at|date:"d/m/Y H:i" }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  {# ── Recursos Asignados (M2M) ────────────────────────────────── #}
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">Recursos Asignados</h2>
+    {% if professional.resources.all %}
+      <div class="flex flex-wrap gap-2">
+        {% for resource in professional.resources.all %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+            {{ resource.name }}
+          </span>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-sm text-gray-500">No tiene recursos asignados.</p>
+    {% endif %}
+  </div>
+
+  {# ── Asignaciones Horarias Section ───────────────────────────── #}
+  <div class="bg-white shadow rounded-lg p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-gray-900">Asignaciones Horarias</h2>
+      {% if is_admin %}
+        <button id="show-assignment-form-btn"
+                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">
+          + Agregar Asignación
+        </button>
+      {% endif %}
+    </div>
+
+    <div id="assignment-list-container">
+      {% include "professionals/partials/_assignment_list.html" %}
+    </div>
+
+    {% if is_admin %}
+      <div id="assignment-form-container" class="mt-4" style="display: none;">
+        {% include "professionals/partials/_assignment_form.html" %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function() {
+    var showBtn = document.getElementById('show-assignment-form-btn');
+    var formContainer = document.getElementById('assignment-form-container');
+
+    if (showBtn && formContainer) {
+      showBtn.addEventListener('click', function() {
+        formContainer.style.display = '';
+      });
+    }
+
+    // Ocultar form luego de agregar asignación exitosamente
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+      if (evt.detail.target && evt.detail.target.id === 'assignment-list-container') {
+        if (formContainer) {
+          formContainer.style.display = 'none';
+        }
+      }
+    });
+
+    // Cancel button: ocultar y limpiar form
+    document.body.addEventListener('click', function(evt) {
+      if (evt.target.classList.contains('assignment-form-cancel') && formContainer) {
+        formContainer.style.display = 'none';
+      }
+    });
+  })();
+</script>
+{% endblock %}

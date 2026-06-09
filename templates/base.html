@@ -35,10 +35,10 @@
               <a href="{% url 'resources:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Recursos
               </a>
+              <a href="{% url 'professionals:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                Profesionales
+              </a>
               {% if user.role == 'admin' or user.role == 'secretary' %}
-                <a href="{% url 'professionals:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Profesionales
-                </a>
                 <a href="{% url 'resources:nonworkingday_list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Días no laborables
                 </a>

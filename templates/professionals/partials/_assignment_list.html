@@ -1,0 +1,39 @@
+{% if assignments %}
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recurso</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Día de Semana</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Inicio</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Fin</th>
+        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Horario</th>
+        {% if is_admin %}
+          <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      {% for a in assignments %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 text-sm text-gray-900">{{ a.resource.name }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ a.get_day_of_week_display|default:"Todos los días" }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ a.start_date|date:"d/m/Y"|default:"Indefinido" }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ a.end_date|date:"d/m/Y"|default:"Indefinido" }}</td>
+          <td class="px-4 py-3 text-sm text-gray-500">{{ a.start_time|time:"H:i" }} – {{ a.end_time|time:"H:i" }}</td>
+          {% if is_admin %}
+            <td class="px-4 py-3 text-sm">
+              <button hx-post="{% url 'professionals:assignment_delete' a.pk %}"
+                      hx-target="#assignment-list-container"
+                      hx-confirm="¿Eliminar esta asignación?"
+                      class="text-red-600 hover:text-red-800 text-sm font-medium">
+                Eliminar
+              </button>
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="text-gray-500 text-sm py-4">No tiene asignaciones horarias configuradas.</p>
+{% endif %}

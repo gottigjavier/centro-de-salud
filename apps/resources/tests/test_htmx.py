@@ -97,6 +97,12 @@ class ScheduleAddHTMXTest(BaseHTMXTest):
         response = self._htmx_post(self._add_url(), self._valid_data())
         self.assertEqual(response.status_code, 302)
 
+    def test_non_existent_resource_404(self):
+        self._login(self.admin)
+        url = reverse("resources:schedule_add", args=[99999])
+        response = self._htmx_post(url, self._valid_data())
+        self.assertEqual(response.status_code, 404)
+
     # ── Success (valid data) ──────────────────────────────────────────────
 
     def test_valid_creates_schedule(self):
@@ -125,11 +131,7 @@ class ScheduleAddHTMXTest(BaseHTMXTest):
     # ── Invalid (overlap) returns 422 ─────────────────────────────────────
 
     def test_overlap_returns_422(self):
-        """Existing: Wednesday 09:00–12:00. New: Wednesday 10:00–11:00 → 422.
-        
-        Avoids day_of_week=0 (Monday) which is falsy and bypasses the
-        overlap check — see ``test_forms.ResourceScheduleFormTest``.
-        """
+        """Existing: Wednesday 09:00–12:00. New: Wednesday 10:00–11:00 → 422."""
         ResourceSchedule.objects.create(
             resource=self.resource,
             day_of_week=2,  # Wednesday (not falsy)

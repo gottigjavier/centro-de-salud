@@ -400,14 +400,16 @@ class ResourceUpdateViewTest(BaseViewTest):
 class ResourceToggleActiveViewTest(BaseViewTest):
     """POST /resources/{pk}/toggle-active/ — admin only, toggles is_active."""
 
-    # ── GET redirects (method not allowed without POST) ────────────────────
+    # ── GET muestra confirmación ──────────────────────────────────────────
 
-    def test_admin_get_redirects(self):
+    def test_admin_get_confirm_page(self):
         self._login(self.admin)
         response = self.client.get(
             reverse("resources:toggle_active", args=[self.resource.pk])
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "resources/resource_confirm_delete.html")
+        self.assertContains(response, self.resource.name)
 
     # ── POST ───────────────────────────────────────────────────────────────
 

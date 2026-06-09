@@ -112,7 +112,7 @@ def resource_update(request, pk):
 
 @require_role("admin")
 def resource_toggle_active(request, pk):
-    """Activar/desactivar un recurso (soft delete). Solo POST."""
+    """Activar/desactivar un recurso (soft delete). GET muestra confirmación, POST ejecuta."""
     resource = get_object_or_404(Resource, pk=pk)
 
     if request.method == "POST":
@@ -129,8 +129,11 @@ def resource_toggle_active(request, pk):
 
         return redirect("resources:list")
 
-    # GET: redirigir al listado (el toggle requiere POST)
-    return redirect("resources:list")
+    # GET: mostrar página de confirmación
+    return render(request, "resources/resource_confirm_delete.html", {
+        "resource": resource,
+        "is_admin": True,
+    })
 
 
 # ── ResourceSchedule HTMX ──────────────────────────────────────────────
@@ -203,7 +206,7 @@ def schedule_delete(request, pk):
 @require_role("admin", "secretary")
 def nonworkingday_list(request):
     """Listado paginado de días no laborables. Accesible por admin y secretaría."""
-    days = NonWorkingDay.objects.all().order_by("-date")
+    days = NonWorkingDay.objects.all().order_by("date")
     paginator = Paginator(days, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)

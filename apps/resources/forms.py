@@ -92,7 +92,8 @@ class ResourceScheduleForm(forms.ModelForm):
             )
 
         # Validar solapamiento con horarios existentes del mismo resource+day
-        if start and end and day and self.resource:
+        # NOTA: usamos `day is not None` (no `if day`) porque day_of_week=0 (Lunes) es falsy
+        if start and end and day is not None and self.resource:
             qs = ResourceSchedule.objects.filter(
                 resource=self.resource,
                 day_of_week=day,
@@ -136,19 +137,35 @@ class NonWorkingDayForm(forms.ModelForm):
         if not date:
             return date
 
-        is_recurring = self.cleaned_data.get("is_recurring", False)
-
-        # Validar que la fecha no sea pasada (solo para no recurrentes)
-        if not is_recurring and date < timezone.localdate():
-            raise forms.ValidationError(
-                "La fecha no puede ser anterior a hoy."
-            )
-
         # Validar unicidad de fecha (el modelo ya tiene unique=True,
         # pero este mensaje es más claro)
+        # NOTA: esto también bloquea updates. Si se necesita editar un NWD
+        # en el futuro, hay que excluir self.instance.pk.
         if NonWorkingDay.objects.filter(date=date).exists():
             raise forms.ValidationError(
                 "Ya existe un día no laborable registrado para esta fecha."
             )
 
         return date
+
+    def clean(self):
+        cleaned = super().clean()
+        date = cleaned.get("date")
+        is_recurring = cleaned.get("is_recurring", False)
+
+        # Validar que la fecha no sea pasada (solo para no recurrentes)
+        # ESTO va en clean() y NO en clean_date() porque clean_date() se
+        # ejecuta ANTES de que is_recurring esté disponible en cleaned_data
+        # (Django procesa los fields en orden: date, reason, is_recurring).
+        if (
+            date
+            and is_recurring is not None
+            and not is_recurring
+            and date < timezone.localdate()
+        ):
+            self.add_error(
+                "date",
+                "La fecha no puede ser anterior a hoy.",
+            )
+
+        return cleaned

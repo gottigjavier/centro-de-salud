@@ -242,8 +242,8 @@ class ResourceScheduleFormTest(TestCase):
 
     # ── Bug: day_of_week=0 (Monday) is falsy → overlap not detected ─────
 
-    def test_monday_overlap_not_detected_due_to_falsy_bug(self):
-        """KNOWN BUG: day_of_week=0 is falsy, so overlap on Monday is NOT caught."""
+    def test_monday_overlap_is_detected(self):
+        """day_of_week=0 (Lunes) ya no es falsy — overlap se detecta correctamente."""
         monday_resource = _create_resource(name="Consultorio Monday")
         ResourceSchedule.objects.create(
             resource=monday_resource,
@@ -262,8 +262,9 @@ class ResourceScheduleFormTest(TestCase):
             },
             resource=monday_resource,
         )
-        # The form SHOULD be invalid (overlap), but due to the falsy-0 bug it's valid
-        self.assertTrue(form.is_valid())
+        # B1 fixed: `if day:` → `if day is not None:` — ahora detecta overlap
+        self.assertFalse(form.is_valid())
+        self.assertIn("El horario se superpone", str(form.errors))
 
 
 # ── NonWorkingDayForm ──────────────────────────────────────────────────────
@@ -287,9 +288,10 @@ class NonWorkingDayFormTest(TestCase):
         }
 
     @patch("apps.resources.forms.timezone.localdate", return_value=date(2024, 11, 1))
-    def test_past_date_invalid_even_if_recurring(self, _mock_localdate):
-        """KNOWN BUG: recurring past dates are rejected because is_recurring
-        is not yet available in clean_date() (field order: date comes first)."""
+    def test_recurring_past_date_is_valid(self, _mock_localdate):
+        """Recurring past dates son válidas (feriados fijos como 15 de junio).
+        B2 fixed: validación movida de clean_date() a clean() donde is_recurring
+        ya está disponible en cleaned_data."""
         form = NonWorkingDayForm(
             data={
                 "date": "2023-06-15",
@@ -297,8 +299,7 @@ class NonWorkingDayFormTest(TestCase):
                 "is_recurring": True,
             }
         )
-        self.assertFalse(form.is_valid())
-        self.assertIn("anterior", str(form.errors.get("date", "")).lower())
+        self.assertTrue(form.is_valid())
 
     @patch("apps.resources.forms.timezone.localdate", return_value=date(2024, 11, 1))
     def test_non_recurring_past_date_invalid(self, _mock_localdate):

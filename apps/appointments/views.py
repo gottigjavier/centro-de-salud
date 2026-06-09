@@ -1,4 +1,5 @@
 """Views for appointment management — CRUD, HTMX, transitions."""
+from collections import OrderedDict
 from datetime import datetime, timedelta
 
 from django.contrib import messages
@@ -270,8 +271,8 @@ def appointment_transition(request, pk, status):
             professional = Professional.objects.get(user=request.user)
             if appointment.professional != professional:
                 raise PermissionDenied
-            # Professional solo puede: CONFIRMED, COMPLETED
-            allowed = [AppointmentStatus.CONFIRMED.value, AppointmentStatus.COMPLETED.value]
+            # Professional solo puede: CONFIRMED, IN_PROGRESS, COMPLETED
+            allowed = [AppointmentStatus.CONFIRMED.value, AppointmentStatus.IN_PROGRESS.value, AppointmentStatus.COMPLETED.value]
             if status not in allowed:
                 raise PermissionDenied
         except Professional.DoesNotExist:
@@ -284,14 +285,134 @@ def appointment_transition(request, pk, status):
     try:
         appointment.full_clean()  # Valida state machine (V-001..V-008)
         appointment.save(update_fields=["status"])
-        messages.success(
-            request,
-            f"Turno {old_status} → {status} actualizado correctamente.",
-        )
     except ValidationError as e:
         return HttpResponseBadRequest(str(e))
 
+    # HTMX response: return updated row with HX-Trigger header
+    if request.htmx:
+        transitions = APPOINTMENT_VALID_TRANSITIONS.get(appointment.status, [])
+        if request.user.role == "professional":
+            prof_allowed = [
+                AppointmentStatus.CONFIRMED.value,
+                AppointmentStatus.IN_PROGRESS.value,
+                AppointmentStatus.COMPLETED.value,
+            ]
+            transitions = [t for t in transitions if t.value in prof_allowed]
+        appointment.valid_transitions = [t.value for t in transitions]
+
+        context = {"appointment": appointment}
+        response = render(request, "appointments/partials/_agenda_row.html", context)
+        response["HX-Trigger"] = "agenda-updated"
+        return response
+
+    messages.success(
+        request,
+        f"Turno {old_status} → {status} actualizado correctamente.",
+    )
     return redirect("appointments:detail", pk=pk)
+
+
+# ── Agenda del Día ─────────────────────────────────────────────────────
+
+
+def _get_agenda_data(request):
+    """Shared helper for agenda view and HTMX partials.
+    Returns (grouped, stats, professionals, warning)"""
+    today = timezone.localdate()
+    professional_filter = request.GET.get("professional", "")
+
+    qs = Appointment.objects.filter(date=today).select_related(
+        "resource", "professional"
+    ).order_by("professional__last_name", "professional__first_name", "start_time")
+
+    # Role scoping
+    warning = None
+    if request.user.role == "professional":
+        try:
+            prof = Professional.objects.get(user=request.user)
+            qs = qs.filter(professional=prof)
+        except Professional.DoesNotExist:
+            qs = Appointment.objects.none()
+            warning = "No tenés un perfil de profesional asociado a tu usuario."
+
+    # Filter by professional
+    if professional_filter and professional_filter.isdigit():
+        qs = qs.filter(professional_id=int(professional_filter))
+
+    # Stats
+    stats = {"total": qs.count()}
+    for choice in AppointmentStatus:
+        stats[choice.value] = qs.filter(status=choice).count()
+
+    # Group by professional with valid transitions
+    grouped = OrderedDict()
+    for appt in qs:
+        # Compute valid transitions as string values for template
+        transitions = [t.value for t in APPOINTMENT_VALID_TRANSITIONS.get(appt.status, [])]
+
+        # Filter by role
+        if request.user.role == "professional":
+            prof_allowed = [
+                AppointmentStatus.CONFIRMED.value,
+                AppointmentStatus.IN_PROGRESS.value,
+                AppointmentStatus.COMPLETED.value,
+            ]
+            transitions = [t for t in transitions if t in prof_allowed]
+
+        appt.valid_transitions = transitions
+
+        key = appt.professional_id
+        if key not in grouped:
+            grouped[key] = {
+                "professional": appt.professional,
+                "appointments": [],
+            }
+        grouped[key]["appointments"].append(appt)
+
+    # Professionals with today's appointments (for filter dropdown)
+    profs_with_appts = Professional.objects.filter(
+        appointments__date=today, is_active=True
+    ).distinct().order_by("last_name", "first_name")
+
+    return grouped, stats, profs_with_appts, warning
+
+
+@login_required
+def agenda_view(request):
+    """Pantalla principal de agenda del día con turnos agrupados por profesional + stats."""
+    grouped, stats, profs_with_appts, warning = _get_agenda_data(request)
+    today = timezone.localdate()
+
+    context = {
+        "grouped": grouped,
+        "stats": stats,
+        "today": today,
+        "is_admin": es_admin(request.user),
+        "is_secretary": request.user.role == "secretary",
+        "is_professional": request.user.role == "professional",
+        "professionals": profs_with_appts,
+        "selected_professional": request.GET.get("professional", ""),
+        "professional_warning": warning,
+    }
+    return render(request, "appointments/agenda.html", context)
+
+
+@login_required
+def htmx_agenda_stats(request):
+    """HTMX partial: stats cards actualizadas."""
+    _, stats, _, _ = _get_agenda_data(request)
+    return render(request, "appointments/partials/_agenda_stats.html", {
+        "stats": stats,
+    })
+
+
+@login_required
+def htmx_agenda_table(request):
+    """HTMX partial: tabla agrupada por profesional."""
+    grouped, _, _, _ = _get_agenda_data(request)
+    return render(request, "appointments/partials/_agenda_table.html", {
+        "grouped": grouped,
+    })
 
 
 # ── Slot calculation ────────────────────────────────────────────────────

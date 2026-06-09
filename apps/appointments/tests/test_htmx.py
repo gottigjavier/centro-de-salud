@@ -1,5 +1,5 @@
 """Tests for HTMX endpoints — profesionales-por-recurso, horarios-por-profesional."""
-from datetime import time as time_obj
+from datetime import time as time_obj, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
@@ -227,3 +227,161 @@ class HorariosPorProfesionalHTMXTest(BaseHTMXTest):
             "resource_id": self.resource.pk,
         })
         self.assertEqual(response.status_code, 302)
+
+
+class AgendaHTMXTest(TestCase):
+    """Test HTMX agenda partials — stats, table, HX-Trigger, row swap."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.localdate()
+        cls.day_of_week = cls.today.weekday()
+        cls.password = "testpass123"
+
+        # Users
+        cls.admin = User(
+            email="admin@htmx.com", role="admin", first_name="Admin",
+        )
+        cls.admin.set_password(cls.password)
+        cls.admin.save()
+
+        cls.prof_user1 = User(
+            email="prof1@htmx.com", role="professional", first_name="Prof1",
+        )
+        cls.prof_user1.set_password(cls.password)
+        cls.prof_user1.save()
+
+        # Professionals
+        cls.prof1 = Professional.objects.create(
+            user=cls.prof_user1, first_name="Dr.", last_name="García",
+            specialty="cardiology", license_number="DOC001", is_active=True,
+        )
+
+        # Resource + Schedule
+        cls.resource = Resource.objects.create(
+            name="Consulta General", type="office", is_active=True,
+        )
+        ResourceSchedule.objects.create(
+            resource=cls.resource, day_of_week=cls.day_of_week,
+            start_time="08:00", end_time="17:00",
+            slot_duration=30, max_appointments_per_slot=3,
+        )
+        # Tomorrow's schedule
+        tomorrow_weekday = (cls.today + timedelta(days=1)).weekday()
+        ResourceSchedule.objects.get_or_create(
+            resource=cls.resource, day_of_week=tomorrow_weekday,
+            defaults={
+                "start_time": "08:00", "end_time": "17:00",
+                "slot_duration": 30, "max_appointments_per_slot": 3,
+            },
+        )
+
+        # ProfessionalResourceAssignment (required for V-008 validation)
+        ProfessionalResourceAssignment.objects.create(
+            professional=cls.prof1, resource=cls.resource,
+            day_of_week=cls.day_of_week,
+            start_time="08:00", end_time="17:00",
+        )
+
+        # Appointments for today
+        Appointment.objects.create(
+            resource=cls.resource, professional=cls.prof1,
+            date=cls.today, start_time="09:00", end_time="09:30",
+            patient_name="Paciente 1", patient_dni="11111111",
+            status=AppointmentStatus.SCHEDULED,
+        )
+        Appointment.objects.create(
+            resource=cls.resource, professional=cls.prof1,
+            date=cls.today, start_time="09:30", end_time="10:00",
+            patient_name="Paciente 2", patient_dni="22222222",
+            status=AppointmentStatus.CONFIRMED,
+        )
+
+        # Appointment for tomorrow (should NOT appear in today's agenda)
+        Appointment.objects.create(
+            resource=cls.resource, professional=cls.prof1,
+            date=cls.today + timedelta(days=1),
+            start_time="09:00", end_time="09:30",
+            patient_name="Paciente Futuro", patient_dni="44444444",
+            status=AppointmentStatus.SCHEDULED,
+        )
+
+    def _login(self, user):
+        self.client.login(email=user.email, password=self.password)
+
+    def _htmx_get(self, url, data=None):
+        """Helper: GET with HX-Request header set."""
+        return self.client.get(url, data=data or {}, HTTP_HX_REQUEST="true")
+
+    def test_stats_partial(self):
+        """Stats partial returns cards with correct counts."""
+        self._login(self.admin)
+        response = self._htmx_get(reverse("appointments:agenda_stats"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Total")
+        self.assertContains(response, "Programados")
+        self.assertContains(response, "Confirmados")
+
+    def test_table_partial(self):
+        """Table partial returns grouped appointments."""
+        self._login(self.admin)
+        response = self._htmx_get(reverse("appointments:agenda_table"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "García")
+
+    def test_transition_returns_hx_trigger(self):
+        """HTMX transition response includes HX-Trigger header."""
+        self._login(self.admin)
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="10:00",
+            end_time="10:30",
+            patient_name="HX-Trigger Test",
+            patient_dni="HT000001",
+            status=AppointmentStatus.CONFIRMED,
+        )
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.ARRIVED.value],
+            ),
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("HX-Trigger", response)
+        self.assertEqual(response["HX-Trigger"], "agenda-updated")
+
+    def test_transition_returns_row_fragment(self):
+        """HTMX transition returns _agenda_row.html fragment."""
+        self._login(self.admin)
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="10:00",
+            end_time="10:30",
+            patient_name="Row Fragment Test",
+            patient_dni="RF000001",
+            status=AppointmentStatus.CONFIRMED,
+        )
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.ARRIVED.value],
+            ),
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="row-')
+
+    def test_empty_day_table(self):
+        """Empty day table shows empty state."""
+        self._login(self.admin)
+        # Delete today's appointments
+        Appointment.objects.filter(
+            date=self.today, professional=self.prof1
+        ).delete()
+        response = self._htmx_get(reverse("appointments:agenda_table"))
+        self.assertContains(response, "No hay turnos programados para hoy")

@@ -13,6 +13,11 @@ urlpatterns = [
     path("<int:pk>/editar/", views.appointment_update, name="update"),
     path("<int:pk>/cancelar/", views.appointment_cancel, name="cancel"),
 
+    # ── Agenda del Día ──────────────────────────────────────────
+    path("agenda/", views.agenda_view, name="agenda"),
+    path("agenda/stats/", views.htmx_agenda_stats, name="agenda_stats"),
+    path("agenda/table/", views.htmx_agenda_table, name="agenda_table"),
+
     # ── State transitions (POST only) ───────────────────────────
     path(
         "<int:pk>/transition/<str:status>/",

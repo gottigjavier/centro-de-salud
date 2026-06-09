@@ -1,5 +1,5 @@
 """Tests for Appointment CRUD views — GET/POST per role, permissions, transitions, scoping."""
-from datetime import timedelta
+from datetime import time, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
@@ -676,17 +676,40 @@ class AppointmentTransitionViewTest(BaseViewTest):
         self.appt_scheduled.refresh_from_db()
         self.assertEqual(self.appt_scheduled.status, AppointmentStatus.CONFIRMED.value)
 
-    def test_valid_transition_confirmed_to_in_progress(self):
+    def test_valid_transition_confirmed_to_arrived(self):
         self._login(self.admin)
         response = self.client.post(
             reverse(
                 "appointments:transition",
-                args=[self.appt_confirmed.pk, AppointmentStatus.IN_PROGRESS.value],
+                args=[self.appt_confirmed.pk, AppointmentStatus.ARRIVED.value],
             )
         )
         self.assertEqual(response.status_code, 302)
         self.appt_confirmed.refresh_from_db()
-        self.assertEqual(self.appt_confirmed.status, AppointmentStatus.IN_PROGRESS.value)
+        self.assertEqual(self.appt_confirmed.status, AppointmentStatus.ARRIVED.value)
+
+    def test_valid_transition_arrived_to_in_progress(self):
+        self._login(self.admin)
+        # First transition to arrived, then to in_progress
+        appt_arrived = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="14:30",
+            end_time="15:00",
+            patient_name="Arrived Patient",
+            patient_dni="AR000001",
+            status=AppointmentStatus.ARRIVED,
+        )
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt_arrived.pk, AppointmentStatus.IN_PROGRESS.value],
+            )
+        )
+        self.assertEqual(response.status_code, 302)
+        appt_arrived.refresh_from_db()
+        self.assertEqual(appt_arrived.status, AppointmentStatus.IN_PROGRESS.value)
 
     def test_valid_transition_in_progress_to_completed(self):
         self._login(self.admin)
@@ -781,6 +804,140 @@ class AppointmentTransitionViewTest(BaseViewTest):
             )
         )
         self.assertEqual(response.status_code, 403)
+
+    # ── ARRIVED transition tests (C-2) ────────────────────────────────────
+
+    def test_admin_transition_confirmed_to_arrived(self):
+        """CONFIRMED → ARRIVED should work for admin."""
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="15:00",
+            end_time="15:30",
+            patient_name="Arrival Test",
+            patient_dni="AT000001",
+            status=AppointmentStatus.CONFIRMED,
+        )
+        self._login(self.admin)
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.ARRIVED.value],
+            )
+        )
+        self.assertEqual(response.status_code, 302)
+        appt.refresh_from_db()
+        self.assertEqual(appt.status, AppointmentStatus.ARRIVED.value)
+
+    def test_scheduled_to_arrived_invalid(self):
+        """SCHEDULED → ARRIVED is not a valid transition."""
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="15:00",
+            end_time="15:30",
+            patient_name="Bad Arrival",
+            patient_dni="BA000001",
+            status=AppointmentStatus.SCHEDULED,
+        )
+        self._login(self.admin)
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.ARRIVED.value],
+            )
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_arrived_to_in_progress_valid(self):
+        """ARRIVED → IN_PROGRESS should work."""
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="15:00",
+            end_time="15:30",
+            patient_name="Arrived To Progress",
+            patient_dni="AP000001",
+            status=AppointmentStatus.ARRIVED,
+        )
+        self._login(self.admin)
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.IN_PROGRESS.value],
+            )
+        )
+        self.assertEqual(response.status_code, 302)
+        appt.refresh_from_db()
+        self.assertEqual(appt.status, AppointmentStatus.IN_PROGRESS.value)
+
+    def test_arrived_to_completed_invalid(self):
+        """ARRIVED → COMPLETED is not valid."""
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="15:00",
+            end_time="15:30",
+            patient_name="Skip Step",
+            patient_dni="SS000001",
+            status=AppointmentStatus.ARRIVED,
+        )
+        self._login(self.admin)
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.COMPLETED.value],
+            )
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_professional_cannot_mark_arrival(self):
+        """Professional cannot do CONFIRMED → ARRIVED."""
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="15:00",
+            end_time="15:30",
+            patient_name="Prof Cant Arrive",
+            patient_dni="PCA00001",
+            status=AppointmentStatus.CONFIRMED,
+        )
+        self._login(self.professional_user)
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.ARRIVED.value],
+            )
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_professional_can_start_from_arrived(self):
+        """Professional can do ARRIVED → IN_PROGRESS."""
+        appt = Appointment.objects.create(
+            resource=self.resource,
+            professional=self.prof1,
+            date=self.today,
+            start_time="15:00",
+            end_time="15:30",
+            patient_name="Prof Can Start",
+            patient_dni="PCS00001",
+            status=AppointmentStatus.ARRIVED,
+        )
+        self._login(self.professional_user)
+        response = self.client.post(
+            reverse(
+                "appointments:transition",
+                args=[appt.pk, AppointmentStatus.IN_PROGRESS.value],
+            )
+        )
+        self.assertEqual(response.status_code, 302)
+        appt.refresh_from_db()
+        self.assertEqual(appt.status, AppointmentStatus.IN_PROGRESS.value)
 
 
 class AppointmentCancelViewTest(BaseViewTest):
@@ -891,3 +1048,167 @@ class AppointmentCancelViewTest(BaseViewTest):
         # Model validation prevents cancel of completed appointments
         self.assertEqual(response.status_code, 200)
         self.assertIn("form", response.context)
+
+
+class AgendaViewTest(TestCase):
+    """Tests for agenda_view — scoping, stats, filters, empty state."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.localdate()
+        cls.day_of_week = cls.today.weekday()
+        cls.password = "testpass123"
+
+        # Users
+        cls.admin = User(
+            email="admin@agenda.com", role="admin", first_name="Admin",
+        )
+        cls.admin.set_password(cls.password)
+        cls.admin.save()
+
+        cls.secretary = User(
+            email="secre@agenda.com", role="secretary", first_name="Secre",
+        )
+        cls.secretary.set_password(cls.password)
+        cls.secretary.save()
+
+        cls.prof_user1 = User(
+            email="prof1@agenda.com", role="professional", first_name="Prof1",
+        )
+        cls.prof_user1.set_password(cls.password)
+        cls.prof_user1.save()
+
+        cls.prof_user2 = User(
+            email="prof2@agenda.com", role="professional", first_name="Prof2",
+        )
+        cls.prof_user2.set_password(cls.password)
+        cls.prof_user2.save()
+
+        cls.prof_nouser = User(
+            email="prof_nouser@agenda.com", role="professional", first_name="NoUser",
+        )
+        cls.prof_nouser.set_password(cls.password)
+        cls.prof_nouser.save()
+
+        # Professionals
+        cls.prof1 = Professional.objects.create(
+            user=cls.prof_user1, first_name="Dr.", last_name="García",
+            specialty="cardiology", license_number="DOC001", is_active=True,
+        )
+        cls.prof2 = Professional.objects.create(
+            user=cls.prof_user2, first_name="Dra.", last_name="López",
+            specialty="pediatrics", license_number="DOC002", is_active=True,
+        )
+
+        # Resource + Schedule
+        cls.resource = Resource.objects.create(
+            name="Consulta General", type="office", is_active=True,
+        )
+        ResourceSchedule.objects.create(
+            resource=cls.resource, day_of_week=cls.day_of_week,
+            start_time="08:00", end_time="17:00",
+            slot_duration=30, max_appointments_per_slot=3,
+        )
+        # Also ensure tomorrow's schedule if needed
+        tomorrow_weekday = (cls.today + timedelta(days=1)).weekday()
+        ResourceSchedule.objects.get_or_create(
+            resource=cls.resource, day_of_week=tomorrow_weekday,
+            defaults={
+                "start_time": "08:00", "end_time": "17:00",
+                "slot_duration": 30, "max_appointments_per_slot": 3,
+            },
+        )
+
+        # Appointments for today
+        Appointment.objects.create(
+            resource=cls.resource, professional=cls.prof1,
+            date=cls.today, start_time="09:00", end_time="09:30",
+            patient_name="Paciente 1", patient_dni="11111111",
+            status=AppointmentStatus.SCHEDULED,
+        )
+        Appointment.objects.create(
+            resource=cls.resource, professional=cls.prof1,
+            date=cls.today, start_time="09:30", end_time="10:00",
+            patient_name="Paciente 2", patient_dni="22222222",
+            status=AppointmentStatus.CONFIRMED,
+        )
+        Appointment.objects.create(
+            resource=cls.resource, professional=cls.prof2,
+            date=cls.today, start_time="10:00", end_time="10:30",
+            patient_name="Paciente 3", patient_dni="33333333",
+            status=AppointmentStatus.IN_PROGRESS,
+        )
+
+        # Appointment for tomorrow (should NOT appear in agenda)
+        cls.appt_tomorrow = Appointment.objects.create(
+            resource=cls.resource, professional=cls.prof1,
+            date=cls.today + timedelta(days=1),
+            start_time="09:00", end_time="09:30",
+            patient_name="Paciente Futuro", patient_dni="44444444",
+            status=AppointmentStatus.SCHEDULED,
+        )
+
+    def _login(self, user):
+        self.client.login(email=user.email, password=self.password)
+
+    def test_admin_sees_all_today(self):
+        """Admin sees all today's appointments."""
+        self._login(self.admin)
+        response = self.client.get(reverse("appointments:agenda"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Agenda del")
+
+    def test_professional_sees_only_own(self):
+        """Professional only sees their own appointments."""
+        self._login(self.prof_user1)
+        response = self.client.get(reverse("appointments:agenda"))
+        self.assertEqual(response.status_code, 200)
+        # Should see prof1's appointments (Paciente 1, Paciente 2)
+        self.assertContains(response, "Paciente 1")
+        self.assertContains(response, "Paciente 2")
+        # Should NOT see prof2's appointments
+        self.assertNotContains(response, "Paciente 3")
+
+    def test_professional_without_user_shows_warning(self):
+        """Professional without user profile sees warning."""
+        self._login(self.prof_nouser)
+        response = self.client.get(reverse("appointments:agenda"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context.get("professional_warning"))
+
+    def test_guest_redirect(self):
+        """Unauthenticated user gets 302."""
+        response = self.client.get(reverse("appointments:agenda"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_stats_in_context(self):
+        """Stats are present in context."""
+        self._login(self.admin)
+        response = self.client.get(reverse("appointments:agenda"))
+        self.assertIn("stats", response.context)
+        stats = response.context["stats"]
+        self.assertIn("total", stats)
+        self.assertIn("scheduled", stats)
+        self.assertIn("confirmed", stats)
+        self.assertIn("arrived", stats)
+        self.assertIn("in_progress", stats)
+        self.assertIn("completed", stats)
+
+    def test_filter_by_professional(self):
+        """Filter by professional works."""
+        self._login(self.admin)
+        response = self.client.get(
+            reverse("appointments:agenda"),
+            {"professional": self.prof1.pk},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Paciente 1")
+        self.assertNotContains(response, "Paciente 3")
+
+    def test_empty_day(self):
+        """Day without appointments shows empty state."""
+        # Create appointments ONLY for tomorrow, clear today's
+        Appointment.objects.filter(date=self.today).delete()
+        self._login(self.admin)
+        response = self.client.get(reverse("appointments:agenda"))
+        self.assertContains(response, "No hay turnos programados para hoy")

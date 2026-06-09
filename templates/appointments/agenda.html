@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Agenda del Día{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Agenda del {{ today|date:"l d/m/Y" }}</h1>
+    <div class="flex gap-2">
+      {% if is_admin or is_secretary %}
+      <a href="{% url 'appointments:create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+        + Nuevo Turno
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if professional_warning %}
+  <div class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
+    {{ professional_warning }}
+  </div>
+  {% endif %}
+
+  {% if is_admin or is_secretary %}
+  <div class="flex gap-4 items-center">
+    <form method="get" class="flex gap-2 items-center">
+      <select name="professional" class="form-input text-sm py-1" onchange="this.form.submit()">
+        <option value="">Todos los profesionales</option>
+        {% for p in professionals %}
+        <option value="{{ p.pk }}" {% if selected_professional == p.pk|stringformat:"s" %}selected{% endif %}>
+          {{ p.first_name }} {{ p.last_name }}
+        </option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit" class="px-3 py-1 bg-gray-200 rounded text-sm">Filtrar</button></noscript>
+    </form>
+    <button hx-get="{% url 'appointments:agenda_table' %}{% if selected_professional %}?professional={{ selected_professional }}{% endif %}"
+            hx-target="#agenda-tabla"
+            class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">
+      Refrescar
+    </button>
+  </div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div id="agenda-stats"
+       hx-get="{% url 'appointments:agenda_stats' %}"
+       hx-trigger="every 30s, agenda-updated from:body">
+    {% include "appointments/partials/_agenda_stats.html" %}
+  </div>
+
+  <!-- Table -->
+  <div id="agenda-tabla"
+       hx-get="{% url 'appointments:agenda_table' %}{% if selected_professional %}?professional={{ selected_professional }}{% endif %}"
+       hx-trigger="every 30s, agenda-updated from:body">
+    {% include "appointments/partials/_agenda_table.html" %}
+  </div>
+</div>
+{% endblock %}

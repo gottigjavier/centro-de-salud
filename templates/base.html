@@ -21,13 +21,13 @@
       <div class="flex justify-between h-16 items-center">
         {# Logo / Brand #}
         <div class="flex items-center space-x-8">
-          <a href="{% url 'appointments:calendar' %}" class="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors">
+          <a href="{% url 'appointments:agenda' %}" class="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors">
             🏥 Turnos
           </a>
           {% if user.is_authenticated %}
             <div class="hidden md:flex space-x-4">
-              <a href="{% url 'appointments:calendar' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Calendario
+              <a href="{% url 'appointments:agenda' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                Agenda
               </a>
               <a href="{% url 'appointments:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Turnos

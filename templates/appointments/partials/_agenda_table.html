@@ -1,0 +1,43 @@
+{% comment %}
+  Partial: Tabla de turnos agrupada por profesional para la Agenda del Día.
+  Uso: {% include "appointments/partials/_agenda_table.html" %}
+{% endcomment %}
+{% if grouped %}
+  {% for key, group in grouped.items %}
+  <details open class="mb-4 border rounded-lg overflow-hidden">
+    <summary class="px-4 py-3 bg-gray-50 hover:bg-gray-100 cursor-pointer font-medium flex items-center justify-between">
+      <span>
+        {{ group.professional.first_name }} {{ group.professional.last_name }}
+        <span class="text-sm text-gray-500 font-normal">{{ group.professional.specialty|default:"" }}</span>
+      </span>
+      <span class="text-sm text-gray-500">{{ group.appointments|length }} turno{{ group.appointments|pluralize }}</span>
+    </summary>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-100 text-xs uppercase text-gray-600">
+          <tr>
+            <th class="px-4 py-2 text-left">Hora</th>
+            <th class="px-4 py-2 text-left">Paciente</th>
+            <th class="px-4 py-2 text-left">Documento</th>
+            <th class="px-4 py-2 text-left">Recurso</th>
+            <th class="px-4 py-2 text-left">Estado</th>
+            <th class="px-4 py-2 text-left">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for appt in group.appointments %}
+            {% include "appointments/partials/_agenda_row.html" with appointment=appt %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  {% endfor %}
+{% else %}
+<div class="text-center py-12 text-gray-500">
+  <p class="text-lg">No hay turnos programados para hoy</p>
+  {% if is_admin or is_secretary %}
+  <a href="{% url 'appointments:create' %}" class="mt-2 inline-block text-blue-600 hover:underline">Crear un turno</a>
+  {% endif %}
+</div>
+{% endif %}

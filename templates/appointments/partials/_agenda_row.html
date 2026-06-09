@@ -1,0 +1,48 @@
+{% comment %}
+  Partial: Fila individual de turno para la tabla de agenda.
+  Target de HTMX row-swap en transiciones de estado.
+  Uso: {% include "appointments/partials/_agenda_row.html" with appointment=appt %}
+{% endcomment %}
+<tr id="row-{{ appointment.pk }}"
+    class="{% if appointment.status == 'in_progress' %}bg-yellow-50{% endif %} hover:bg-gray-50 transition-colors">
+  <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+    {{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}
+  </td>
+  <td class="px-4 py-3 text-sm">
+    <a href="{% url 'appointments:detail' pk=appointment.pk %}" class="text-blue-600 hover:underline font-medium">
+      {{ appointment.patient_name }}
+    </a>
+  </td>
+  <td class="px-4 py-3 text-sm text-gray-600">{{ appointment.patient_dni }}</td>
+  <td class="px-4 py-3 text-sm text-gray-600">{{ appointment.resource.name }}</td>
+  <td class="px-4 py-3">
+    {% include "appointments/partials/_status_badge.html" with status=appointment.status %}
+  </td>
+  <td class="px-4 py-3 whitespace-nowrap">
+    <div class="flex gap-1">
+      {% for transition in appointment.valid_transitions %}
+        {% if transition == 'cancelled' %}
+          <a href="{% url 'appointments:cancel' pk=appointment.pk %}"
+             class="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200">
+            Cancelar
+          </a>
+        {% else %}
+          <button hx-post="{% url 'appointments:transition' pk=appointment.pk status=transition %}"
+                  hx-target="#row-{{ appointment.pk }}"
+                  hx-swap="outerHTML"
+                  class="px-2 py-1 text-xs rounded {% if transition == 'in_progress' %}bg-green-100 text-green-700 hover:bg-green-200{% elif transition == 'arrived' %}bg-purple-100 text-purple-700 hover:bg-purple-200{% elif transition == 'confirmed' %}bg-blue-100 text-blue-700 hover:bg-blue-200{% elif transition == 'completed' %}bg-emerald-100 text-emerald-700 hover:bg-emerald-200{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+            {% if transition == 'arrived' %}Llegó
+            {% elif transition == 'confirmed' %}Confirmar
+            {% elif transition == 'in_progress' %}Iniciar
+            {% elif transition == 'completed' %}Completar
+            {% elif transition == 'cancelled' %}Cancelar
+            {% else %}{{ transition }}
+            {% endif %}
+          </button>
+        {% endif %}
+      {% empty %}
+        <span class="text-xs text-gray-400">—</span>
+      {% endfor %}
+    </div>
+  </td>
+</tr>

@@ -122,7 +122,7 @@ else:
 # ── Auth ────────────────────────────────────────────────────────────────────
 AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "account_login"
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/appointments/agenda/"
 LOGOUT_REDIRECT_URL = "account_login"
 
 AUTHENTICATION_BACKENDS = [

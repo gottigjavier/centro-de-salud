@@ -14,6 +14,7 @@ from apps.resources.models import Resource, ResourceSchedule
 class AppointmentStatus(models.TextChoices):
     SCHEDULED = "scheduled", "Programado"
     CONFIRMED = "confirmed", "Confirmado"
+    ARRIVED = "arrived", "Llegó"
     IN_PROGRESS = "in_progress", "En atención"
     COMPLETED = "completed", "Completado"
     CANCELLED = "cancelled", "Cancelado"
@@ -22,19 +23,10 @@ class AppointmentStatus(models.TextChoices):
 
 # Transiciones de estado válidas para Appointment
 APPOINTMENT_VALID_TRANSITIONS = {
-    AppointmentStatus.SCHEDULED: [
-        AppointmentStatus.CONFIRMED,
-        AppointmentStatus.CANCELLED,
-        AppointmentStatus.NO_SHOW,
-    ],
-    AppointmentStatus.CONFIRMED: [
-        AppointmentStatus.IN_PROGRESS,
-        AppointmentStatus.CANCELLED,
-        AppointmentStatus.NO_SHOW,
-    ],
-    AppointmentStatus.IN_PROGRESS: [
-        AppointmentStatus.COMPLETED,
-    ],
+    AppointmentStatus.SCHEDULED: [AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED],
+    AppointmentStatus.CONFIRMED: [AppointmentStatus.ARRIVED, AppointmentStatus.CANCELLED],
+    AppointmentStatus.ARRIVED: [AppointmentStatus.IN_PROGRESS, AppointmentStatus.CANCELLED],
+    AppointmentStatus.IN_PROGRESS: [AppointmentStatus.COMPLETED],
     AppointmentStatus.COMPLETED: [],  # Terminal
     AppointmentStatus.CANCELLED: [],  # Terminal
     AppointmentStatus.NO_SHOW: [],   # Terminal

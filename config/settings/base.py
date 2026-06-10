@@ -137,8 +137,6 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_USERNAME_REQUIRED = False
-
 # ── Internationalization ────────────────────────────────────────────────────
 LANGUAGE_CODE = "es-ar"
 TIME_ZONE = "America/Argentina/Buenos_Aires"
@@ -149,7 +147,7 @@ USE_TZ = True
 APPOINTMENT_VALIDATE_PROFESSIONAL_ASSIGNMENT = True
 
 # ── Static files ────────────────────────────────────────────────────────────
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STORAGES = {

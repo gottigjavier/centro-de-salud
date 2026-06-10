@@ -50,6 +50,11 @@ class Professional(TimeStampedMixin, ActiveMixin, models.Model):
         help_text="Recursos donde este profesional puede atender",
     )
 
+    @property
+    def name(self):
+        """Nombre completo formateado: Apellido, Nombre."""
+        return f"{self.last_name}, {self.first_name}"
+
     class Meta:
         verbose_name = "profesional"
         verbose_name_plural = "profesionales"

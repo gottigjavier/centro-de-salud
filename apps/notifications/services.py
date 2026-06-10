@@ -51,3 +51,48 @@ def send_confirmation(appointment):
         error_message="" if success else error,
         sent_at=now() if success else None,
     )
+
+
+def send_reminder(appointment):
+    """Send reminder email for an appointment. Creates NotificationLog entry."""
+    if not appointment.patient_email:
+        return NotificationLog.objects.create(
+            appointment=appointment,
+            channel=NotificationLog.Channel.EMAIL,
+            notification_type=NotificationLog.Type.REMINDER,
+            recipient=appointment.patient_phone or "—",
+            status=NotificationLog.Status.FAILED,
+            error_message="Paciente sin email",
+        )
+
+    backend = EmailBackend()
+    context = {
+        "appointment": appointment,
+        "clinic_name": getattr(settings, "CLINIC_NAME", "Centro de Salud"),
+        "clinic_address": getattr(settings, "CLINIC_ADDRESS", ""),
+    }
+    body_html = render_to_string(
+        "notifications/emails/reminder.html", context,
+    )
+    body_plain = strip_tags(body_html)
+
+    try:
+        success, error = backend.send(
+            to=appointment.patient_email,
+            subject=f"Recordatorio de turno - {appointment.date}",
+            body_html=body_html,
+            body_plain=body_plain,
+            context=context,
+        )
+    except Exception as e:
+        success, error = False, str(e)
+
+    return NotificationLog.objects.create(
+        appointment=appointment,
+        channel=NotificationLog.Channel.EMAIL,
+        notification_type=NotificationLog.Type.REMINDER,
+        recipient=appointment.patient_email,
+        status=NotificationLog.Status.SENT if success else NotificationLog.Status.FAILED,
+        error_message="" if success else error,
+        sent_at=now() if success else None,
+    )

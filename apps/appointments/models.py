@@ -33,6 +33,13 @@ APPOINTMENT_VALID_TRANSITIONS = {
 }
 
 
+class AppointmentManager(models.Manager):
+    """Default manager: excludes soft-deleted records."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
 class Appointment(TimeStampedMixin, models.Model):
     """
     A patient appointment/turno.
@@ -99,6 +106,14 @@ class Appointment(TimeStampedMixin, models.Model):
         related_name="appointments_created",
         verbose_name="creado por",
     )
+
+    # Soft-delete
+    deleted_at = models.DateTimeField(
+        null=True, blank=True, db_index=True, verbose_name="eliminado el",
+    )
+
+    objects = AppointmentManager()
+    all_objects = models.Manager()
 
     # ── Model hooks ────────────────────────────────────────────────────
 
@@ -295,6 +310,7 @@ class Appointment(TimeStampedMixin, models.Model):
         verbose_name = "turno"
         verbose_name_plural = "turnos"
         ordering = ["date", "start_time"]
+        base_manager_name = "all_objects"
         indexes = [
             models.Index(fields=["date", "resource"]),
             models.Index(fields=["date", "professional"]),
@@ -302,6 +318,10 @@ class Appointment(TimeStampedMixin, models.Model):
             models.Index(fields=["resource", "date", "status"]),
             models.Index(fields=["patient_dni"]),
             models.Index(fields=["status"]),
+            models.Index(
+                fields=["send_reminder", "status", "date", "start_time"],
+                name="idx_send_reminder_candidates",
+            ),
         ]
 
     def __str__(self):

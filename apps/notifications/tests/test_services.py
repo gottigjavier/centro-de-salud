@@ -8,7 +8,7 @@ from django.utils import timezone
 from apps.appointments.models import Appointment, AppointmentStatus
 from apps.notifications.backends import BaseNotificationBackend, EmailBackend
 from apps.notifications.models import NotificationLog
-from apps.notifications.services import send_confirmation
+from apps.notifications.services import send_confirmation, send_reminder
 from apps.professionals.models import Professional
 from apps.resources.models import Resource
 
@@ -140,6 +140,123 @@ class SendConfirmationTest(TestCase):
             appointment=self.appointment,
             notification_type=NotificationLog.Type.CONFIRMATION,
         ).count(), 2)
+
+
+class SendReminderTest(TestCase):
+    """Tests for send_reminder — email sending with REMINDER type."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.today = timezone.localdate()
+        cls.professional = Professional.objects.create(
+            first_name="Test", last_name="Prof",
+            specialty="general", license_number="MAT-TEST-R",
+        )
+        cls.resource = Resource.objects.create(name="Test Resource", type="office")
+        cls.appointment = Appointment.objects.create(
+            resource=cls.resource,
+            professional=cls.professional,
+            date=cls.today,
+            start_time=time(9, 0),
+            end_time=time(9, 30),
+            patient_name="Paciente Test",
+            patient_dni="12345678",
+            patient_phone="5555-0000",
+            patient_email="paciente@test.com",
+            status=AppointmentStatus.SCHEDULED,
+        )
+        cls.appt_no_email = Appointment.objects.create(
+            resource=cls.resource,
+            professional=cls.professional,
+            date=cls.today,
+            start_time=time(10, 0),
+            end_time=time(10, 30),
+            patient_name="Sin Email",
+            patient_dni="87654321",
+            patient_phone="5555-1111",
+            status=AppointmentStatus.SCHEDULED,
+        )
+
+    @patch("apps.notifications.services.EmailBackend.send")
+    def test_sends_reminder_and_creates_sent_log(self, mock_send):
+        """Appointment con email válido → envía email, log status=SENT, type=REMINDER."""
+        mock_send.return_value = (True, "")
+
+        log = send_reminder(self.appointment)
+
+        mock_send.assert_called_once()
+        self.assertEqual(log.status, NotificationLog.Status.SENT)
+        self.assertIsNotNone(log.sent_at, "sent_at debe setearse al enviar")
+        self.assertEqual(log.channel, NotificationLog.Channel.EMAIL)
+        self.assertEqual(log.notification_type, NotificationLog.Type.REMINDER)
+        self.assertEqual(log.recipient, "paciente@test.com")
+        self.assertEqual(log.appointment_id, self.appointment.pk)
+        self.assertEqual(log.error_message, "")
+
+    def test_no_email_creates_failed_log(self):
+        """Appointment sin patient_email → log FAILED, no lanza excepción."""
+        log = send_reminder(self.appt_no_email)
+
+        self.assertEqual(log.status, NotificationLog.Status.FAILED)
+        self.assertEqual(log.error_message, "Paciente sin email")
+        self.assertIsNone(log.sent_at, "sent_at debe ser None si falló")
+        self.assertEqual(log.notification_type, NotificationLog.Type.REMINDER)
+
+    @patch("apps.notifications.services.EmailBackend.send")
+    def test_email_failure_creates_failed_log(self, mock_send):
+        """EmailBackend.send falla → log FAILED con mensaje de error."""
+        mock_send.return_value = (False, "SMTP connection refused")
+
+        log = send_reminder(self.appointment)
+
+        self.assertEqual(log.status, NotificationLog.Status.FAILED)
+        self.assertEqual(log.error_message, "SMTP connection refused")
+        self.assertIsNone(log.sent_at, "sent_at debe ser None si falló")
+
+    @patch("apps.notifications.services.EmailBackend.send")
+    def test_exception_in_backend_captured(self, mock_send):
+        """Si backend.send lanza excepción → se captura y log FAILED."""
+        mock_send.side_effect = ConnectionError("Server unreachable")
+
+        log = send_reminder(self.appointment)
+
+        self.assertEqual(log.status, NotificationLog.Status.FAILED)
+        self.assertIn("Server unreachable", log.error_message)
+
+    @patch("apps.notifications.services.EmailBackend.send")
+    def test_always_creates_one_log(self, mock_send):
+        """Cada llamada a send_reminder crea exactamente 1 NotificationLog."""
+        mock_send.return_value = (True, "")
+
+        log_count_before = NotificationLog.objects.count()
+        send_reminder(self.appointment)
+        log_count_after = NotificationLog.objects.count()
+        self.assertEqual(log_count_after - log_count_before, 1)
+
+    @patch("apps.notifications.services.EmailBackend.send")
+    def test_subject_format(self, mock_send):
+        """El subject del email incluye 'Recordatorio de turno - {date}'."""
+        mock_send.return_value = (True, "")
+
+        send_reminder(self.appointment)
+
+        # Verificar que el subject se pasa con el formato correcto
+        call_kwargs = mock_send.call_args[1]
+        expected_subject = f"Recordatorio de turno - {self.today}"
+        self.assertEqual(call_kwargs["subject"], expected_subject)
+
+    @patch("apps.notifications.services.EmailBackend.send")
+    def test_uses_correct_template(self, mock_send):
+        """Verifica que render_to_string se llama con reminder.html."""
+        mock_send.return_value = (True, "")
+
+        with patch("apps.notifications.services.render_to_string") as mock_render:
+            mock_render.return_value = "<html>reminder</html>"
+            send_reminder(self.appointment)
+            mock_render.assert_called_once()
+            # El primer argumento posicional debe ser el template
+            template_arg = mock_render.call_args[0][0]
+            self.assertEqual(template_arg, "notifications/emails/reminder.html")
 
 
 class BackendTest(TestCase):

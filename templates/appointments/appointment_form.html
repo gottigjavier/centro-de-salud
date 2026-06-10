@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resourceId = resourceSelect?.value;
     const date = dateInput?.value;
     if (resourceId && date) {
-      fetch(`/appointments/htmx/profesionales-por-recurso/${resourceId}/?date=${date}`)
+      fetch(`/htmx/profesionales-por-recurso/${resourceId}/?date=${date}`)
         .then(r => r.text())
         .then(html => {
           professionalContainer.innerHTML = '<label class="block text-sm font-medium text-gray-700 mb-1">Profesional</label>' + html;
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const date = dateInput?.value;
     const profId = profSelect?.value;
     if (profId && date && resourceId && profId !== '') {
-      fetch(`/appointments/htmx/horarios-por-profesional/${profId}/?date=${date}&resource_id=${resourceId}`)
+      fetch(`/htmx/horarios-por-profesional/${profId}/?date=${date}&resource_id=${resourceId}`)
         .then(r => r.text())
         .then(html => {
           slotContainer.innerHTML = '<label class="block text-sm font-medium text-gray-700 mb-1">Horario</label>' + html;

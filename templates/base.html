@@ -7,10 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Sistema de Turnos{% endblock %}</title>
 
-  {# Tailwind CSS via django-tailwind-cli #}
+  {# Tailwind CSS: built with django-tailwind-cli (or manual download) #}
   <link rel="stylesheet" href="{% static 'theme/css/tailwind.css' %}">
-  {# Fallback: CDN while tailwind-cli builds #}
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.17/dist/tailwind.min.css" rel="stylesheet">
 
   {% block extra_css %}{% endblock %}
 </head>
@@ -28,6 +26,9 @@
             <div class="hidden md:flex space-x-4">
               <a href="{% url 'appointments:agenda' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Agenda
+              </a>
+              <a href="{% url 'reports:dashboard' %}" class="{% if '/reportes/' in request.path %}text-blue-600 font-semibold{% else %}text-gray-700{% endif %} hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                Reportes
               </a>
               <a href="{% url 'appointments:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Turnos

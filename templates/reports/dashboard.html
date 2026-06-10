@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reportes y Estadísticas{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold">Reportes y Estadísticas</h1>
+
+  {# ── Date filter form ───────────────────────────────────────────── #}
+  <form method="get" class="flex gap-4 items-end">
+    <div>
+      <label class="block text-sm font-medium mb-1">Desde</label>
+      <input type="date" name="date_from" value="{{ date_from }}" class="form-input">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Hasta</label>
+      <input type="date" name="date_to" value="{{ date_to }}" class="form-input">
+    </div>
+    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+      Aplicar
+    </button>
+  </form>
+
+  {# ── Widget grid ────────────────────────────────────────────────── #}
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    {# Widget: profesionales #}
+    <div id="widget-profesionales"
+         hx-get="{% url 'reports:widget_profesionales' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+         hx-trigger="load">
+      {% include "reports/partials/profesionales.html" %}
+    </div>
+
+    {# Widget: cancelaciones #}
+    <div id="widget-cancelaciones"
+         hx-get="{% url 'reports:widget_cancelaciones' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+         hx-trigger="load">
+      {% include "reports/partials/cancelaciones.html" %}
+    </div>
+
+    {# Widget: recursos #}
+    <div id="widget-recursos"
+         hx-get="{% url 'reports:widget_recursos' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+         hx-trigger="load">
+      {% include "reports/partials/recursos.html" %}
+    </div>
+
+    {# Widget: tendencia #}
+    <div id="widget-tendencia"
+         hx-get="{% url 'reports:widget_tendencia' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+         hx-trigger="load">
+      {% include "reports/partials/tendencia.html" %}
+    </div>
+
+    {# Widget: frecuentes #}
+    <div id="widget-frecuentes"
+         hx-get="{% url 'reports:widget_frecuentes' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+         hx-trigger="load">
+      {% include "reports/partials/frecuentes.html" %}
+    </div>
+
+    {# Widget: horas pico #}
+    <div id="widget-horas-pico"
+         hx-get="{% url 'reports:widget_horas_pico' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+         hx-trigger="load">
+      {% include "reports/partials/horas_pico.html" %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  let charts = {};
+
+  function initCharts() {
+    // Destroy existing charts
+    Object.values(charts).forEach(function(c) {
+      try { c.destroy(); } catch(e) {}
+    });
+    charts = {};
+
+    document.querySelectorAll('[data-chart]').forEach(function(canvas) {
+      try {
+        var config = JSON.parse(canvas.dataset.chart);
+        charts[canvas.id] = new Chart(canvas, config);
+      } catch(e) {
+        console.warn('Chart init error:', e);
+      }
+    });
+  }
+
+  // Init on DOM ready
+  document.addEventListener('DOMContentLoaded', initCharts);
+
+  // Re-init after HTMX swaps (future-proof for partial refresh)
+  document.addEventListener('htmx:afterSwap', function(event) {
+    setTimeout(initCharts, 50);
+  });
+})();
+</script>
+{% endblock %}

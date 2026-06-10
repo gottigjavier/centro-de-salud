@@ -1,0 +1,64 @@
+<div class="bg-white border rounded-lg p-4">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="font-semibold text-lg">Cancelaciones</h3>
+    <a href="{% url 'reports:csv_cancelaciones' %}?date_from={{ date_from }}&date_to={{ date_to }}"
+       class="text-sm text-blue-600 hover:underline">CSV ↓</a>
+  </div>
+
+  {% if warning %}
+    <p class="text-yellow-700 text-sm">No tenés un perfil de profesional asociado a tu usuario.</p>
+  {% elif total is not None %}
+    {% if professional_only %}
+      <p class="text-sm text-gray-500 mb-2">(solo tus turnos)</p>
+    {% endif %}
+
+    {# Summary stats #}
+    <div class="grid grid-cols-3 gap-4 mb-4">
+      <div class="bg-gray-50 rounded p-3 text-center">
+        <div class="text-2xl font-bold">{{ total }}</div>
+        <div class="text-xs text-gray-500">Total Turnos</div>
+      </div>
+      <div class="bg-red-50 rounded p-3 text-center">
+        <div class="text-2xl font-bold text-red-700">{{ cancelled }}</div>
+        <div class="text-xs text-red-500">Cancelados</div>
+      </div>
+      <div class="bg-orange-50 rounded p-3 text-center">
+        <div class="text-2xl font-bold text-orange-700">{{ rate }}%</div>
+        <div class="text-xs text-orange-500">Tasa de Cancelación</div>
+      </div>
+    </div>
+
+    {# Reasons table #}
+    {% if reasons %}
+    <div class="overflow-x-auto mb-4">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50 border-b">
+            <th class="px-3 py-2 text-left">Motivo</th>
+            <th class="px-3 py-2 text-center">Cantidad</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for r in reasons %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-3 py-2">{{ r.cancellation_reason|default:"Sin motivo" }}</td>
+            <td class="px-3 py-2 text-center">{{ r.count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-gray-500 text-center py-4">Sin cancelaciones en este período</p>
+    {% endif %}
+
+    {# Pie chart #}
+    {% if chart_config %}
+    <div class="h-48">
+      <canvas id="chart-cancelaciones" data-chart='{{ chart_config|escapejs }}'></canvas>
+    </div>
+    {% endif %}
+  {% else %}
+    <p class="text-gray-500 text-center py-8">Sin datos en el período seleccionado</p>
+  {% endif %}
+</div>

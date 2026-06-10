@@ -16,7 +16,7 @@ class AppointmentForm(forms.ModelForm):
         fields = [
             "resource", "date", "professional", "start_time", "end_time",
             "patient_name", "patient_dni", "patient_phone", "patient_email",
-            "comments", "status",
+            "send_reminder", "comments", "status",
         ]
         widgets = {
             "start_time": forms.HiddenInput(),
@@ -27,6 +27,7 @@ class AppointmentForm(forms.ModelForm):
             "patient_dni": forms.TextInput(attrs={"class": "form-input"}),
             "patient_phone": forms.TextInput(attrs={"class": "form-input"}),
             "patient_email": forms.EmailInput(attrs={"class": "form-input"}),
+            "send_reminder": forms.CheckboxInput(attrs={"class": "form-checkbox"}),
             "comments": forms.Textarea(attrs={"class": "form-input", "rows": 3}),
             "resource": forms.Select(attrs={"class": "form-input"}),
         }
@@ -73,9 +74,10 @@ class AppointmentForm(forms.ModelForm):
 
     def clean_patient_phone(self):
         phone = self.cleaned_data.get("patient_phone")
-        if phone:
-            return phone.strip()
-        return ""
+        if not phone or not phone.strip():
+            raise forms.ValidationError("El teléfono de contacto es obligatorio.")
+        return phone.strip()
+
 
     def clean(self):
         cleaned = super().clean()

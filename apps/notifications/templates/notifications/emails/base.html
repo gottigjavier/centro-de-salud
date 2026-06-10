@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block email_subject %}Centro de Salud{% endblock %}</title>
+  <style>
+    body { margin:0; padding:0; background:#f3f4f6; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    .email-wrapper { max-width:600px; margin:0 auto; padding:20px; }
+    .email-header { background:#2563eb; color:white; padding:24px; border-radius:8px 8px 0 0; text-align:center; }
+    .email-header h1 { margin:0; font-size:20px; font-weight:600; }
+    .email-body { background:white; padding:24px; border-radius:0 0 8px 8px; }
+    .email-footer { margin-top:16px; text-align:center; font-size:12px; color:#6b7280; }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="email-header">
+      <h1>{{ clinic_name }}</h1>
+    </div>
+    <div class="email-body">
+      {% block email_content %}{% endblock %}
+    </div>
+    <div class="email-footer">
+      <p>{{ clinic_address }}</p>
+      <p>Este es un mensaje automático. Por favor no responder.</p>
+    </div>
+  </div>
+</body>
+</html>

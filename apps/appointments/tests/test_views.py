@@ -408,6 +408,7 @@ class AppointmentCreateViewTest(BaseViewTest):
                 "end_time": "08:30",
                 "patient_name": "Nuevo Paciente",
                 "patient_dni": "87654321",
+                "patient_phone": "5555-0000",
             },
         )
         self.assertEqual(response.status_code, 302)
@@ -427,6 +428,7 @@ class AppointmentCreateViewTest(BaseViewTest):
                 "end_time": "08:30",
                 "patient_name": "Secretaria Paciente",
                 "patient_dni": "11111111",
+                "patient_phone": "5555-0001",
             },
         )
         self.assertEqual(response.status_code, 302)
@@ -549,7 +551,7 @@ class AppointmentUpdateViewTest(BaseViewTest):
             {
                 "patient_name": "Secretary Update",
                 "patient_dni": "11111111",
-                "patient_phone": "",
+                "patient_phone": "5555-1111",
                 "patient_email": "",
                 "comments": "",
             },
@@ -583,7 +585,7 @@ class AppointmentUpdateViewTest(BaseViewTest):
             {
                 "patient_name": "Prueba Resource",
                 "patient_dni": "11111111",
-                "patient_phone": "",
+                "patient_phone": "5555-2222",
                 "patient_email": "",
                 "comments": "",
             },

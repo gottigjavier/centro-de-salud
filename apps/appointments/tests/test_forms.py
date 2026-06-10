@@ -202,11 +202,16 @@ class AppointmentFormTest(BaseFormTest):
         form = AppointmentForm()
         self.assertEqual(form.initial.get("status"), AppointmentStatus.SCHEDULED)
 
-    def test_phone_optional(self):
-        """Empty phone is accepted."""
+    def test_phone_required(self):
+        """Empty phone is rejected."""
         data = {**self.valid_data, "patient_phone": ""}
         form = self.make_form(data=data)
-        self.assertTrue(form.is_valid())
+        self.assertFalse(form.is_valid())
+        self.assertFormError(
+            form,
+            "patient_phone",
+            "El teléfono de contacto es obligatorio.",
+        )
 
     def test_email_optional(self):
         """Empty email is accepted."""

@@ -39,6 +39,8 @@ LOCAL_APPS = [
     "apps.resources",
     "apps.professionals",
     "apps.appointments",
+    "apps.reports",
+    "apps.notifications",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -168,5 +170,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ── Tailwind CLI ────────────────────────────────────────────────────────────
 TAILWIND_CLI_SRC_CSS = BASE_DIR / "theme" / "static_src" / "src" / "input.css"
-TAILWIND_CLI_DIST_CSS = BASE_DIR / "theme" / "static" / "css" / "tailwind.css"
+TAILWIND_CLI_DIST_CSS = BASE_DIR / "static" / "theme" / "css" / "tailwind.css"
 TAILWIND_CLI_PATH = BASE_DIR / "theme" / "tailwindcss"
+
+# ── Notificaciones ────────────────────────────────────────────────────────────
+CLINIC_NAME = "Centro de Salud"
+CLINIC_ADDRESS = ""

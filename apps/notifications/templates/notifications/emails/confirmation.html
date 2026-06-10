@@ -1,0 +1,32 @@
+{% extends "notifications/emails/base.html" %}
+{% load tz %}
+
+{% block email_subject %}Turno confirmado - {{ appointment.date }}{% endblock %}
+
+{% block email_content %}
+<p>Hola <strong>{{ appointment.patient_name }}</strong>,</p>
+<p>Tu turno ha sido confirmado con los siguientes detalles:</p>
+
+<table style="width:100%; border-collapse:collapse; margin:16px 0;">
+  <tr>
+    <td style="padding:8px; border:1px solid #e5e7eb; font-weight:600; width:40%;">Fecha</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">{{ appointment.date|date:"l d/m/Y" }}</td>
+  </tr>
+  <tr>
+    <td style="padding:8px; border:1px solid #e5e7eb; font-weight:600;">Horario</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</td>
+  </tr>
+  <tr>
+    <td style="padding:8px; border:1px solid #e5e7eb; font-weight:600;">Profesional</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">{{ appointment.professional.name }}</td>
+  </tr>
+  <tr>
+    <td style="padding:8px; border:1px solid #e5e7eb; font-weight:600;">Consultorio</td>
+    <td style="padding:8px; border:1px solid #e5e7eb;">{{ appointment.resource.name }}</td>
+  </tr>
+</table>
+
+<p style="font-size:13px; color:#6b7280;">
+  Si no podés asistir, por favor comunicate con el centro para cancelar tu turno.
+</p>
+{% endblock %}

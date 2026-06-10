@@ -11,6 +11,7 @@ urlpatterns = [
     path("", include("apps.appointments.urls")),
     path("resources/", include("apps.resources.urls")),
     path("professionals/", include("apps.professionals.urls")),
+    path("reportes/", include("apps.reports.urls")),
 ]
 
 # Debug toolbar

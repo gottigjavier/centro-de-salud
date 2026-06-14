@@ -196,7 +196,7 @@ class Appointment(TimeStampedMixin, models.Model):
         if errors:
             raise ValidationError(errors)
 
-        # V-003 + V-004: Horario dentro del rango y duración correcta
+        # V-003: Horario dentro del rango del ResourceSchedule
         if self.start_time and self.end_time:
             matching_schedule = None
             for schedule in schedules:
@@ -209,19 +209,6 @@ class Appointment(TimeStampedMixin, models.Model):
                     "El horario del turno está fuera del horario habilitado del recurso."
                 )
 
-            # V-004: Duración == slot_duration
-            turno_minutes = (
-                datetime.combine(date.min, self.end_time)
-                - datetime.combine(date.min, self.start_time)
-            ).seconds // 60
-            if turno_minutes != matching_schedule.slot_duration:
-                raise ValidationError(
-                    f"La duración del turno debe ser de {matching_schedule.slot_duration} minutos."
-                )
-
-            # Guardar para T-005 (V-006: capacidad contra max_appointments_per_slot)
-            self._valid_schedule = matching_schedule
-
         # ── V-005: NonWorkingDay (día no laborable) ────────────────────
         from apps.resources.models import NonWorkingDay
 
@@ -232,12 +219,12 @@ class Appointment(TimeStampedMixin, models.Model):
                 f"La fecha {self.date} es un día no laborable."
             )
 
-        # ── V-006: Capacidad del slot ──────────────────────────────────
-        if getattr(self, '_valid_schedule', None):
+        # ── V-006: Capacidad diaria del recurso ────────────────────────
+        max_per_day = self.resource.max_appointments_per_day
+        if max_per_day is not None:
             current_count = Appointment.objects.filter(
                 resource=self.resource,
                 date=self.date,
-                start_time=self.start_time,
             ).exclude(
                 status__in=[
                     AppointmentStatus.CANCELLED,
@@ -245,35 +232,13 @@ class Appointment(TimeStampedMixin, models.Model):
                 ]
             ).exclude(pk=self.pk).count()
 
-            if current_count >= self._valid_schedule.max_appointments_per_slot:
+            if current_count >= max_per_day:
                 raise ValidationError(
-                    f"El cupo máximo de {self._valid_schedule.max_appointments_per_slot} "
-                    f"turno(s) para este horario ya fue alcanzado."
+                    f"El cupo máximo de {max_per_day} turno(s) "
+                    f"para este recurso en el día {self.date} ya fue alcanzado."
                 )
 
-        # ── V-007: Solapamiento con otros turnos ───────────────────────
-        if self.start_time and self.end_time:
-            overlaps = Appointment.objects.filter(
-                resource=self.resource,
-                date=self.date,
-                start_time__lt=self.end_time,
-                end_time__gt=self.start_time,
-            ).exclude(
-                status__in=[
-                    AppointmentStatus.CANCELLED,
-                    AppointmentStatus.NO_SHOW,
-                ]
-            ).exclude(pk=self.pk)
-
-            if overlaps.exists():
-                conflicting = overlaps.first()
-                raise ValidationError(
-                    f"El turno se superpone con otro turno existente: "
-                    f"'{conflicting.patient_name}' de {conflicting.start_time} "
-                    f"a {conflicting.end_time}."
-                )
-
-        # ── V-008: Profesional asignado al recurso ─────────────────────
+        # ── V-007: Profesional asignado al recurso ─────────────────────
         if (
             getattr(settings, "APPOINTMENT_VALIDATE_PROFESSIONAL_ASSIGNMENT", True)
             and self.professional_id

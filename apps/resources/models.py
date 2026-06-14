@@ -67,6 +67,13 @@ class Resource(TimeStampedMixin, ActiveMixin, models.Model):
         default=1, verbose_name="capacidad máxima"
     )
     description = models.TextField(blank=True, verbose_name="descripción")
+    max_appointments_per_day = models.PositiveIntegerField(
+        default=None,
+        null=True,
+        blank=True,
+        verbose_name="turnos máximos por día",
+        help_text="Máxima cantidad de turnos permitidos para este recurso en un mismo día. Dejar vacío para ilimitado.",
+    )
 
     class Meta:
         verbose_name = "recurso"

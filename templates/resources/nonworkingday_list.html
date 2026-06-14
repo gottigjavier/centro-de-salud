@@ -4,7 +4,7 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Días No Laborables</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Días No Laborables</h1>
     {% if is_admin %}
       <a href="{% url 'resources:nonworkingday_create' %}"
          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
@@ -13,33 +13,33 @@
     {% endif %}
   </div>
 
-  <div class="bg-white shadow rounded-lg overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Motivo</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recurrente</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Activo</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Fecha</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Motivo</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Recurrente</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Activo</th>
           {% if is_admin %}
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
           {% endif %}
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200">
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
         {% for nwd in nonworkingdays %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm text-gray-900">{{ nwd.date|date:"d/m/Y" }}</td>
-            <td class="px-6 py-4 text-sm text-gray-900">{{ nwd.reason }}</td>
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{ nwd.date|date:"d/m/Y" }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{ nwd.reason }}</td>
             <td class="px-6 py-4">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {% if nwd.is_recurring %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                {% if nwd.is_recurring %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200{% else %}bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300{% endif %}">
                 {{ nwd.is_recurring|yesno:"Sí,No" }}
               </span>
             </td>
             <td class="px-6 py-4">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {% if nwd.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {% if nwd.is_active %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
                 {{ nwd.is_active|yesno:"Activo,Inactivo" }}
               </span>
             </td>
@@ -47,7 +47,7 @@
               <td class="px-6 py-4 text-sm">
                 <button hx-post="{% url 'resources:nonworkingday_delete' nwd.pk %}"
                         hx-confirm="¿Eliminar {{ nwd.reason }} ({{ nwd.date|date:'d/m/Y' }})?"
-                        class="text-red-600 hover:text-red-800 text-sm font-medium bg-transparent border-0 cursor-pointer">
+                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium bg-transparent border-0 cursor-pointer">
                   Eliminar
                 </button>
               </td>
@@ -55,7 +55,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="{% if is_admin %}5{% else %}4{% endif %}" class="px-6 py-8 text-center text-gray-500">
+            <td colspan="{% if is_admin %}5{% else %}4{% endif %}" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
               No hay días no laborables registrados.
             </td>
           </tr>
@@ -68,18 +68,18 @@
     <div class="mt-4 flex justify-center items-center gap-2">
       {% if nonworkingdays.has_previous %}
         <a href="?page={{ nonworkingdays.previous_page_number }}"
-           class="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Anterior
         </a>
       {% endif %}
 
-      <span class="text-sm text-gray-600">
+      <span class="text-sm text-gray-600 dark:text-gray-400">
         Página {{ nonworkingdays.number }} de {{ nonworkingdays.paginator.num_pages }}
       </span>
 
       {% if nonworkingdays.has_next %}
         <a href="?page={{ nonworkingdays.next_page_number }}"
-           class="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Siguiente
         </a>
       {% endif %}

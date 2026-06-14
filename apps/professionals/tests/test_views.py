@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.professionals.forms import ProfessionalResourceAssignmentForm
 from apps.professionals.models import Professional
 
 
@@ -173,21 +174,22 @@ class ProfessionalDetailViewTest(BaseViewTest):
         response = self.client.get(
             reverse("professionals:detail", args=[self.professional.pk])
         )
-        self.assertIsNotNone(response.context["assignment_form"])
+        self.assertIsNotNone(response.context["form"])
+        self.assertIsInstance(response.context["form"], ProfessionalResourceAssignmentForm)
 
     def test_secretary_no_assignment_form(self):
         self._login(self.secretary)
         response = self.client.get(
             reverse("professionals:detail", args=[self.professional.pk])
         )
-        self.assertIsNone(response.context["assignment_form"])
+        self.assertIsNone(response.context["form"])
 
     def test_professional_no_assignment_form(self):
         self._login(self.professional_user)
         response = self.client.get(
             reverse("professionals:detail", args=[self.professional.pk])
         )
-        self.assertIsNone(response.context["assignment_form"])
+        self.assertIsNone(response.context["form"])
 
     def test_empty_assignments_shows_message(self):
         self._login(self.admin)
@@ -228,6 +230,8 @@ class ProfessionalCreateViewTest(BaseViewTest):
 
     # ── POST ───────────────────────────────────────────────────────────────
 
+    PASSWORD = "testpass123"
+
     def test_admin_post_valid_302(self):
         self._login(self.admin)
         response = self.client.post(
@@ -239,12 +243,18 @@ class ProfessionalCreateViewTest(BaseViewTest):
                 "license_number": "MP54321",
                 "email": "maria@salud.com",
                 "phone": "+54 11 5555-1234",
+                "password": self.PASSWORD,
+                "confirm_password": self.PASSWORD,
             },
         )
         self.assertEqual(response.status_code, 302)
         self.assertTrue(
             Professional.objects.filter(license_number="MP54321").exists()
         )
+        # Verificar que se creó el User
+        prof = Professional.objects.get(license_number="MP54321")
+        self.assertIsNotNone(prof.user)
+        self.assertEqual(prof.user.role, "professional")
 
     def test_admin_post_invalid_200(self):
         self._login(self.admin)

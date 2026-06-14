@@ -110,6 +110,8 @@ class DateRangesOverlapTest(TestCase):
 class ProfessionalFormTest(TestCase):
     """ProfessionalForm: license uniqueness (case insensitive, self-exclusion)."""
 
+    PASSWORD = "testpass123"
+
     def setUp(self):
         self.valid_data = {
             "first_name": "María",
@@ -118,6 +120,8 @@ class ProfessionalFormTest(TestCase):
             "license_number": "MP54321",
             "email": "maria@salud.com",
             "phone": "+54 11 5555-1234",
+            "password": self.PASSWORD,
+            "confirm_password": self.PASSWORD,
         }
 
     def test_valid_form_creates_professional(self):
@@ -186,17 +190,23 @@ class ProfessionalFormTest(TestCase):
         self.assertIn("license_number", form.errors)
 
     def test_create_with_minimal_data(self):
-        """Should work without email, phone, or resources."""
+        """Should work without phone or resources. Email + password required for user creation."""
         form = ProfessionalForm(data={
             "first_name": "Ana",
             "last_name": "López",
             "specialty": "general",
             "license_number": "MP99999",
+            "email": "ana@salud.com",
+            "password": self.PASSWORD,
+            "confirm_password": self.PASSWORD,
         })
         self.assertTrue(form.is_valid())
         professional = form.save()
-        self.assertEqual(professional.email, "")
         self.assertEqual(professional.phone, "")
+        # Debe haber creado un User con role professional
+        self.assertIsNotNone(professional.user)
+        self.assertEqual(professional.user.role, "professional")
+        self.assertEqual(professional.user.email, "ana@salud.com")
 
 
 # ── ProfessionalResourceAssignmentForm ─────────────────────────────────

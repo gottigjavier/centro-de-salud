@@ -167,14 +167,14 @@ class ResourceDetailViewTest(BaseViewTest):
         response = self.client.get(
             reverse("resources:detail", args=[self.resource.pk])
         )
-        self.assertIsNotNone(response.context["schedule_form"])
+        self.assertIsNotNone(response.context["form"])
 
     def test_secretary_no_schedule_form(self):
         self._login(self.secretary)
         response = self.client.get(
             reverse("resources:detail", args=[self.resource.pk])
         )
-        self.assertIsNone(response.context["schedule_form"])
+        self.assertIsNone(response.context["form"])
 
     def test_empty_schedules_shows_message(self):
         self._login(self.admin)
@@ -223,7 +223,7 @@ class ResourceCreateViewTest(BaseViewTest):
                 "name": "Consultorio Nuevo",
                 "type": "office",
                 "location": "Piso 1",
-                "max_capacity": 3,
+                "max_appointments_per_day": 50,
                 "description": "Nuevo consultorio",
             },
         )
@@ -240,7 +240,7 @@ class ResourceCreateViewTest(BaseViewTest):
                 "name": "",
                 "type": "office",
                 "location": "",
-                "max_capacity": 1,
+                "max_appointments_per_day": 1,
                 "description": "",
             },
         )
@@ -256,7 +256,7 @@ class ResourceCreateViewTest(BaseViewTest):
                 "name": "Consultorio Duplicado",
                 "type": "office",
                 "location": "",
-                "max_capacity": 1,
+                "max_appointments_per_day": 1,
                 "description": "",
             },
         )
@@ -271,7 +271,7 @@ class ResourceCreateViewTest(BaseViewTest):
                 "name": "No debería crear",
                 "type": "office",
                 "location": "",
-                "max_capacity": 1,
+                "max_appointments_per_day": 1,
                 "description": "",
             },
         )
@@ -285,7 +285,7 @@ class ResourceCreateViewTest(BaseViewTest):
                 "name": "No debería crear",
                 "type": "office",
                 "location": "",
-                "max_capacity": 1,
+                "max_appointments_per_day": 1,
                 "description": "",
             },
         )
@@ -298,7 +298,7 @@ class ResourceCreateViewTest(BaseViewTest):
                 "name": "Sin auth",
                 "type": "office",
                 "location": "",
-                "max_capacity": 1,
+                "max_appointments_per_day": 1,
                 "description": "",
             },
         )
@@ -355,14 +355,14 @@ class ResourceUpdateViewTest(BaseViewTest):
                 "name": "Consultorio 1 Renovado",
                 "type": "office",
                 "location": "Piso 2",
-                "max_capacity": 4,
+                "max_appointments_per_day": 50,
                 "description": "Actualizado",
             },
         )
         self.assertEqual(response.status_code, 302)
         self.resource.refresh_from_db()
         self.assertEqual(self.resource.name, "Consultorio 1 Renovado")
-        self.assertEqual(self.resource.max_capacity, 4)
+        self.assertEqual(self.resource.max_appointments_per_day, 50)
 
     def test_admin_post_invalid_200(self):
         self._login(self.admin)
@@ -372,7 +372,7 @@ class ResourceUpdateViewTest(BaseViewTest):
                 "name": "",
                 "type": "office",
                 "location": "",
-                "max_capacity": 1,
+                "max_appointments_per_day": 1,
                 "description": "",
             },
         )
@@ -387,7 +387,7 @@ class ResourceUpdateViewTest(BaseViewTest):
                 "name": "No debería",
                 "type": "office",
                 "location": "",
-                "max_capacity": 1,
+                "max_appointments_per_day": 1,
                 "description": "",
             },
         )

@@ -28,7 +28,6 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     "django_htmx",
-    "tailwind_cli",
     "allauth",
     "allauth.account",
 ]
@@ -124,7 +123,7 @@ else:
 # ── Auth ────────────────────────────────────────────────────────────────────
 AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "account_login"
-LOGIN_REDIRECT_URL = "/appointments/agenda/"
+LOGIN_REDIRECT_URL = "/agenda/"
 LOGOUT_REDIRECT_URL = "account_login"
 
 AUTHENTICATION_BACKENDS = [
@@ -133,10 +132,17 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # django-allauth
+# Settings modernas (allauth >= 65)
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+# Settings legacy (allauth < 65.6) — necesarias para que los system checks
+# de la versión 65.3.1 (usada en Docker) no tiren CRITICALs.
+# Ver: https://github.com/pennersr/django-allauth/issues/4739
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
 # ── Internationalization ────────────────────────────────────────────────────
 LANGUAGE_CODE = "es-ar"
 TIME_ZONE = "America/Argentina/Buenos_Aires"
@@ -165,11 +171,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # ── Default primary key ─────────────────────────────────────────────────────
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# ── Tailwind CLI ────────────────────────────────────────────────────────────
-TAILWIND_CLI_SRC_CSS = BASE_DIR / "theme" / "static_src" / "src" / "input.css"
-TAILWIND_CLI_DIST_CSS = BASE_DIR / "static" / "theme" / "css" / "tailwind.css"
-TAILWIND_CLI_PATH = BASE_DIR / "theme" / "tailwindcss"
 
 # ── Notificaciones ────────────────────────────────────────────────────────────
 CLINIC_NAME = "Centro de Salud"

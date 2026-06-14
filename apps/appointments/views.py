@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from apps.professionals.models import Professional, ProfessionalResourceAssignment
-from apps.resources.models import Resource
+from apps.resources.models import Resource, ResourceSchedule
 
 from .forms import AppointmentForm, CancelAppointmentForm
 from .models import APPOINTMENT_VALID_TRANSITIONS, Appointment, AppointmentStatus
@@ -420,8 +420,18 @@ def htmx_agenda_table(request):
 
 def get_available_slots(resource_id, professional_id, date):
     """Return list of (start_time, end_time) available slots for a given day."""
-    SLOT_DURATION = timedelta(minutes=30)
     day_of_week = date.weekday()
+
+    # Obtener slot_duration del ResourceSchedule
+    schedule = ResourceSchedule.objects.filter(
+        resource_id=resource_id,
+        day_of_week=day_of_week,
+        is_active=True,
+    ).first()
+    if not schedule:
+        return []
+
+    slot_duration = timedelta(minutes=schedule.slot_duration)
 
     assignments = ProfessionalResourceAssignment.objects.filter(
         professional_id=professional_id,
@@ -438,33 +448,28 @@ def get_available_slots(resource_id, professional_id, date):
     if not assignments.exists():
         return []
 
-    # Turnos ocupados (no cancelados)
-    booked = Appointment.objects.filter(
-        professional_id=professional_id,
-        resource_id=resource_id,
-        date=date,
-    ).exclude(
-        status__in=[AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
-    ).values_list("start_time", "end_time")
+    # Verificar límite diario del recurso
+    resource = Resource.objects.get(pk=resource_id)
+    if resource.max_appointments_per_day is not None:
+        day_count = Appointment.objects.filter(
+            resource_id=resource_id,
+            date=date,
+        ).exclude(
+            status__in=[AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
+        ).count()
+        if day_count >= resource.max_appointments_per_day:
+            return []
 
-    booked_slots = [(b[0], b[1]) for b in booked]
-
-    def overlaps(s, e):
-        for bs, be in booked_slots:
-            if s < be and e > bs:
-                return True
-        return False
-
+    # Generar slots sin filtrar por start_time individual
     slots = []
     for assignment in assignments:
         current = datetime.combine(date, assignment.start_time)
         end_dt = datetime.combine(date, assignment.end_time)
-        while current + SLOT_DURATION <= end_dt:
+        while current + slot_duration <= end_dt:
             slot_start = current.time()
-            slot_end = (current + SLOT_DURATION).time()
-            if not overlaps(slot_start, slot_end):
-                slots.append((slot_start, slot_end))
-            current += SLOT_DURATION
+            slot_end = (current + slot_duration).time()
+            slots.append((slot_start, slot_end))
+            current += slot_duration
 
     return slots
 

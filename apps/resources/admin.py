@@ -18,7 +18,7 @@ class ResourceScheduleInline(admin.TabularInline):
 
 @admin.register(Resource)
 class ResourceAdmin(admin.ModelAdmin):
-    list_display = ("name", "type", "location", "max_capacity", "is_active")
+    list_display = ("name", "type", "location", "max_appointments_per_day", "is_active")
     list_filter = ("type", "is_active")
     search_fields = ("name", "location")
     inlines = [ResourceScheduleInline]

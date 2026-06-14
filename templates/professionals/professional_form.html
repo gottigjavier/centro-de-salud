@@ -3,37 +3,69 @@
 
 {% block content %}
 <div class="max-w-lg mx-auto">
-  <h1 class="text-2xl font-bold text-gray-900 mb-6">
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">
     {% if is_edit %}Editar Profesional{% else %}Nuevo Profesional{% endif %}
   </h1>
 
-  <div class="bg-white shadow rounded-lg p-6">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
     <form method="post" class="space-y-4">
       {% csrf_token %}
 
       {% if form.non_field_errors %}
-        <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 text-sm">
+        <div class="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
           {{ form.non_field_errors }}
         </div>
       {% endif %}
 
-      {% for field in form %}
-        <div>
-          <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ field.label }}
-          </label>
-          {{ field }}
-          {% if field.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
-          {% endif %}
-          {% if field.help_text %}
-            <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
-          {% endif %}
-        </div>
+      {# Campos del profesional (excluyendo password) #}
+      {% for field in form.visible_fields %}
+        {% if field.name != "password" and field.name != "confirm_password" %}
+          <div>
+            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ field.label }}
+            </label>
+            {{ field }}
+            {% if field.errors %}
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ field.errors.0 }}</p>
+            {% endif %}
+            {% if field.help_text %}
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ field.help_text }}</p>
+            {% endif %}
+          </div>
+        {% endif %}
       {% endfor %}
 
+      {# ── Credenciales de usuario ───────────────────────── #}
+      <hr class="border-gray-200 dark:border-gray-700">
+      <div class="space-y-4">
+        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Cuenta de Usuario</h2>
+
+        <div>
+          <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ form.password.label }}
+          </label>
+          {{ form.password }}
+          {% if form.password.errors %}
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.password.errors.0 }}</p>
+          {% endif %}
+          {% if form.password.help_text %}
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ form.password.help_text }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.confirm_password.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {{ form.confirm_password.label }}
+          </label>
+          {{ form.confirm_password }}
+          {% if form.confirm_password.errors %}
+            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.confirm_password.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+
       <div class="flex justify-end space-x-3 pt-4">
-        <a href="{% url 'professionals:list' %}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        <a href="{% url 'professionals:list' %}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Cancelar
         </a>
         <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">

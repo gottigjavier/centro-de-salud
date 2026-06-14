@@ -4,27 +4,29 @@ from django import forms
 
 from .models import User
 
+INPUT_CLASS = "form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+
 
 class SetupAdminForm(forms.ModelForm):
     """Formulario para crear el primer administrador."""
 
     password1 = forms.CharField(
         label="Contraseña",
-        widget=forms.PasswordInput(attrs={"class": "form-input"}),
+        widget=forms.PasswordInput(attrs={"class": INPUT_CLASS}),
     )
     password2 = forms.CharField(
         label="Confirmar contraseña",
-        widget=forms.PasswordInput(attrs={"class": "form-input"}),
+        widget=forms.PasswordInput(attrs={"class": INPUT_CLASS}),
     )
 
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name", "phone"]
         widgets = {
-            "email": forms.EmailInput(attrs={"class": "form-input"}),
-            "first_name": forms.TextInput(attrs={"class": "form-input"}),
-            "last_name": forms.TextInput(attrs={"class": "form-input"}),
-            "phone": forms.TextInput(attrs={"class": "form-input"}),
+            "email": forms.EmailInput(attrs={"class": INPUT_CLASS}),
+            "first_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "last_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "phone": forms.TextInput(attrs={"class": INPUT_CLASS}),
         }
 
     def clean_email(self):
@@ -56,22 +58,22 @@ class UserCreateForm(forms.ModelForm):
 
     password1 = forms.CharField(
         label="Contraseña",
-        widget=forms.PasswordInput(attrs={"class": "form-input"}),
+        widget=forms.PasswordInput(attrs={"class": INPUT_CLASS}),
     )
     password2 = forms.CharField(
         label="Confirmar contraseña",
-        widget=forms.PasswordInput(attrs={"class": "form-input"}),
+        widget=forms.PasswordInput(attrs={"class": INPUT_CLASS}),
     )
 
     class Meta:
         model = User
         fields = ["email", "first_name", "last_name", "phone", "role"]
         widgets = {
-            "email": forms.EmailInput(attrs={"class": "form-input"}),
-            "first_name": forms.TextInput(attrs={"class": "form-input"}),
-            "last_name": forms.TextInput(attrs={"class": "form-input"}),
-            "phone": forms.TextInput(attrs={"class": "form-input"}),
-            "role": forms.Select(attrs={"class": "form-input"}),
+            "email": forms.EmailInput(attrs={"class": INPUT_CLASS}),
+            "first_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "last_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "phone": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "role": forms.Select(attrs={"class": INPUT_CLASS}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -125,11 +127,11 @@ class UserEditForm(forms.ModelForm):
         model = User
         fields = ["email", "first_name", "last_name", "phone", "role", "is_active"]
         widgets = {
-            "email": forms.EmailInput(attrs={"class": "form-input"}),
-            "first_name": forms.TextInput(attrs={"class": "form-input"}),
-            "last_name": forms.TextInput(attrs={"class": "form-input"}),
-            "phone": forms.TextInput(attrs={"class": "form-input"}),
-            "role": forms.Select(attrs={"class": "form-input"}),
+            "email": forms.EmailInput(attrs={"class": INPUT_CLASS}),
+            "first_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "last_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "phone": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "role": forms.Select(attrs={"class": INPUT_CLASS}),
         }
 
     def __init__(self, *args, **kwargs):

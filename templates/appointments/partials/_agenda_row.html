@@ -4,17 +4,17 @@
   Uso: {% include "appointments/partials/_agenda_row.html" with appointment=appt %}
 {% endcomment %}
 <tr id="row-{{ appointment.pk }}"
-    class="{% if appointment.status == 'in_progress' %}bg-yellow-50{% endif %} hover:bg-gray-50 transition-colors">
+    class="{% if appointment.status == 'in_progress' %}bg-yellow-50 dark:bg-yellow-900/20{% endif %} hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
   <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
     {{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}
   </td>
   <td class="px-4 py-3 text-sm">
-    <a href="{% url 'appointments:detail' pk=appointment.pk %}" class="text-blue-600 hover:underline font-medium">
+    <a href="{% url 'appointments:detail' pk=appointment.pk %}" class="text-blue-600 hover:underline dark:text-blue-400 font-medium">
       {{ appointment.patient_name }}
     </a>
   </td>
-  <td class="px-4 py-3 text-sm text-gray-600">{{ appointment.patient_dni }}</td>
-  <td class="px-4 py-3 text-sm text-gray-600">{{ appointment.resource.name }}</td>
+  <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ appointment.patient_dni }}</td>
+  <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ appointment.resource.name }}</td>
   <td class="px-4 py-3">
     {% include "appointments/partials/_status_badge.html" with status=appointment.status %}
   </td>
@@ -23,14 +23,14 @@
       {% for transition in appointment.valid_transitions %}
         {% if transition == 'cancelled' %}
           <a href="{% url 'appointments:cancel' pk=appointment.pk %}"
-             class="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200">
+             class="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-800/50">
             Cancelar
           </a>
         {% else %}
           <button hx-post="{% url 'appointments:transition' pk=appointment.pk status=transition %}"
                   hx-target="#row-{{ appointment.pk }}"
                   hx-swap="outerHTML"
-                  class="px-2 py-1 text-xs rounded {% if transition == 'in_progress' %}bg-green-100 text-green-700 hover:bg-green-200{% elif transition == 'arrived' %}bg-purple-100 text-purple-700 hover:bg-purple-200{% elif transition == 'confirmed' %}bg-blue-100 text-blue-700 hover:bg-blue-200{% elif transition == 'completed' %}bg-emerald-100 text-emerald-700 hover:bg-emerald-200{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                  class="px-2 py-1 text-xs rounded {% if transition == 'in_progress' %}bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-800/50{% elif transition == 'arrived' %}bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:hover:bg-purple-800/50{% elif transition == 'confirmed' %}bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-800/50{% elif transition == 'completed' %}bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300 dark:hover:bg-emerald-800/50{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600{% endif %}">
             {% if transition == 'arrived' %}Llegó
             {% elif transition == 'confirmed' %}Confirmar
             {% elif transition == 'in_progress' %}Iniciar
@@ -41,7 +41,7 @@
           </button>
         {% endif %}
       {% empty %}
-        <span class="text-xs text-gray-400">—</span>
+        <span class="text-xs text-gray-400 dark:text-gray-500">—</span>
       {% endfor %}
     </div>
   </td>

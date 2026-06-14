@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from .models import DAYS_OF_WEEK, NonWorkingDay, Resource, ResourceSchedule
 
+INPUT_CLASS = "form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
 
 # ── Resource ────────────────────────────────────────────────────────────
 
@@ -15,16 +16,19 @@ class ResourceForm(forms.ModelForm):
 
     class Meta:
         model = Resource
-        fields = ["name", "type", "location", "max_capacity", "description"]
+        fields = ["name", "type", "location", "max_appointments_per_day", "description"]
+        labels = {
+            "max_appointments_per_day": "Capacidad máxima",
+        }
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-input"}),
-            "type": forms.Select(attrs={"class": "form-input"}),
-            "location": forms.TextInput(attrs={"class": "form-input"}),
-            "max_capacity": forms.NumberInput(
-                attrs={"class": "form-input", "min": 1}
+            "name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "type": forms.Select(attrs={"class": INPUT_CLASS}),
+            "location": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "max_appointments_per_day": forms.NumberInput(
+                attrs={"class": INPUT_CLASS, "min": 1}
             ),
             "description": forms.Textarea(
-                attrs={"class": "form-input", "rows": 3}
+                attrs={"class": INPUT_CLASS, "rows": 3}
             ),
         }
 
@@ -59,19 +63,19 @@ class ResourceScheduleForm(forms.ModelForm):
         ]
         widgets = {
             "day_of_week": forms.Select(
-                choices=DAYS_OF_WEEK, attrs={"class": "form-input"}
+                choices=DAYS_OF_WEEK, attrs={"class": INPUT_CLASS}
             ),
             "start_time": forms.TimeInput(
-                attrs={"class": "form-input", "type": "time"}
+                attrs={"class": INPUT_CLASS, "type": "time"}
             ),
             "end_time": forms.TimeInput(
-                attrs={"class": "form-input", "type": "time"}
+                attrs={"class": INPUT_CLASS, "type": "time"}
             ),
             "slot_duration": forms.NumberInput(
-                attrs={"class": "form-input", "min": 1}
+                attrs={"class": INPUT_CLASS, "min": 1}
             ),
             "max_appointments_per_slot": forms.NumberInput(
-                attrs={"class": "form-input", "min": 1}
+                attrs={"class": INPUT_CLASS, "min": 1}
             ),
         }
 
@@ -124,11 +128,11 @@ class NonWorkingDayForm(forms.ModelForm):
         fields = ["date", "reason", "is_recurring"]
         widgets = {
             "date": forms.DateInput(
-                attrs={"class": "form-input", "type": "date"}
+                attrs={"class": INPUT_CLASS, "type": "date"}
             ),
-            "reason": forms.TextInput(attrs={"class": "form-input"}),
+            "reason": forms.TextInput(attrs={"class": INPUT_CLASS}),
             "is_recurring": forms.CheckboxInput(
-                attrs={"class": "form-checkbox"}
+                attrs={"class": "form-checkbox dark:bg-gray-700 dark:border-gray-600"}
             ),
         }
 

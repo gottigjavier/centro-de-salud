@@ -61,11 +61,11 @@ def resource_detail(request, pk):
     schedules = ResourceSchedule.objects.filter(
         resource=resource, is_active=True
     ).order_by("day_of_week", "start_time")
-    schedule_form = ResourceScheduleForm(resource=resource) if es_admin(request.user) else None
+    form = ResourceScheduleForm(resource=resource) if es_admin(request.user) else None
     return render(request, "resources/resource_detail.html", {
         "resource": resource,
         "schedules": schedules,
-        "schedule_form": schedule_form,
+        "form": form,
         "is_admin": es_admin(request.user),
     })
 

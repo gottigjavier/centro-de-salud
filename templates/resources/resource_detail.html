@@ -6,9 +6,9 @@
   {# ── Header ──────────────────────────────────────────────────── #}
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-gray-900">{{ resource.name }}</h1>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ resource.name }}</h1>
       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-        {% if resource.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+        {% if resource.is_active %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
         {{ resource.is_active|yesno:"Activo,Inactivo" }}
       </span>
     </div>
@@ -19,45 +19,45 @@
           Editar
         </a>
       {% endif %}
-      <a href="{% url 'resources:list' %}"
-         class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        <a href="{% url 'resources:list' %}"
+           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
         Volver a lista
       </a>
     </div>
   </div>
 
   {# ── Resource Info Card ──────────────────────────────────────── #}
-  <div class="bg-white shadow rounded-lg p-6 mb-6">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
-        <dt class="text-sm font-medium text-gray-500">Tipo</dt>
-        <dd class="mt-1 text-sm text-gray-900">{{ resource.get_type_display }}</dd>
+        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Tipo</dt>
+        <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ resource.get_type_display }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-gray-500">Ubicación</dt>
-        <dd class="mt-1 text-sm text-gray-900">{{ resource.location|default:"—" }}</dd>
+        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Ubicación</dt>
+        <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ resource.location|default:"—" }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-gray-500">Capacidad máxima</dt>
-        <dd class="mt-1 text-sm text-gray-900">{{ resource.max_capacity }}</dd>
+        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Capacidad máxima</dt>
+        <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ resource.max_appointments_per_day|default:"Ilimitado" }}</dd>
       </div>
       <div>
-        <dt class="text-sm font-medium text-gray-500">Estado</dt>
-        <dd class="mt-1 text-sm text-gray-900">{{ resource.is_active|yesno:"Activo,Inactivo" }}</dd>
+        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Estado</dt>
+        <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ resource.is_active|yesno:"Activo,Inactivo" }}</dd>
       </div>
       {% if resource.description %}
         <div class="sm:col-span-2">
-          <dt class="text-sm font-medium text-gray-500">Descripción</dt>
-          <dd class="mt-1 text-sm text-gray-900">{{ resource.description|linebreaks }}</dd>
+          <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Descripción</dt>
+          <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">{{ resource.description|linebreaks }}</dd>
         </div>
       {% endif %}
     </dl>
   </div>
 
   {# ── Schedules Section ───────────────────────────────────────── #}
-  <div class="bg-white shadow rounded-lg p-6">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold text-gray-900">Horarios de Atención</h2>
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Horarios de Atención</h2>
       {% if is_admin %}
         <button id="show-schedule-form-btn"
                 class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">

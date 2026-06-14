@@ -7,45 +7,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Sistema de Turnos{% endblock %}</title>
 
+  {# Antiflash: aplicar dark antes del render para evitar el flash de blanco #}
+  <script>
+    if (localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+
   {# Tailwind CSS: built with django-tailwind-cli (or manual download) #}
   <link rel="stylesheet" href="{% static 'theme/css/tailwind.css' %}">
 
   {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   {# ── Navbar ─────────────────────────────────────────────── #}
-  <nav class="bg-white shadow-sm border-b border-gray-200">
+  <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between h-16 items-center">
         {# Logo / Brand #}
         <div class="flex items-center space-x-8">
-          <a href="{% url 'appointments:agenda' %}" class="text-xl font-bold text-blue-600 hover:text-blue-800 transition-colors">
+          <a href="{% url 'appointments:agenda' %}" class="text-xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
             🏥 Turnos
           </a>
           {% if user.is_authenticated %}
             <div class="hidden md:flex space-x-4">
-              <a href="{% url 'appointments:agenda' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <a href="{% url 'appointments:agenda' %}" class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Agenda
               </a>
-              <a href="{% url 'reports:dashboard' %}" class="{% if '/reportes/' in request.path %}text-blue-600 font-semibold{% else %}text-gray-700{% endif %} hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <a href="{% url 'reports:dashboard' %}" class="{% if '/reportes/' in request.path %}text-blue-600 dark:text-blue-400 font-semibold{% else %}text-gray-700 dark:text-gray-300{% endif %} hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Reportes
               </a>
-              <a href="{% url 'appointments:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <a href="{% url 'appointments:list' %}" class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Turnos
               </a>
-              <a href="{% url 'resources:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <a href="{% url 'resources:list' %}" class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Recursos
               </a>
-              <a href="{% url 'professionals:list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <a href="{% url 'professionals:list' %}" class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Profesionales
               </a>
               {% if user.role == 'admin' or user.role == 'secretary' %}
-                <a href="{% url 'resources:nonworkingday_list' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                <a href="{% url 'resources:nonworkingday_list' %}" class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Días no laborables
                 </a>
               {% endif %}
               {% if user.is_staff %}
-                <a href="{% url 'admin:index' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                <a href="{% url 'admin:index' %}" class="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Admin
                 </a>
               {% endif %}
@@ -54,25 +64,39 @@
         </div>
 
         {# User menu #}
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-3">
+          {# Dark mode toggle #}
+          <button id="dark-mode-toggle"
+                  class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Cambiar tema">
+            {# Sol (visible en light) #}
+            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            {# Luna (visible en dark, oculta por defecto) #}
+            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+
           {% if user.is_authenticated %}
-            <span class="text-sm text-gray-500 hidden sm:inline">
+            <span class="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
               {{ user.get_full_name|default:user.email }}
               <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                {% if user.role == 'admin' %}bg-purple-100 text-purple-800
-                {% elif user.role == 'secretary' %}bg-blue-100 text-blue-800
-                {% else %}bg-green-100 text-green-800{% endif %}">
+                {% if user.role == 'admin' %}bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200
+                {% elif user.role == 'secretary' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                {% else %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% endif %}">
                 {{ user.get_role_display }}
               </span>
             </span>
             <form method="post" action="{% url 'account_logout' %}" class="inline">
               {% csrf_token %}
-              <button type="submit" class="text-sm text-gray-500 hover:text-red-600 transition-colors">
+              <button type="submit" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
                 Salir
               </button>
             </form>
           {% else %}
-            <a href="{% url 'account_login' %}" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+            <a href="{% url 'account_login' %}" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
               Ingresar
             </a>
           {% endif %}
@@ -86,10 +110,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
       {% for message in messages %}
         <div class="p-4 rounded-md mb-2
-          {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
-          {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
-          {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200
-          {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+          {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/50 dark:text-red-200 dark:border-red-800
+          {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200 dark:bg-green-900/50 dark:text-green-200 dark:border-green-800
+          {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-200 dark:border-yellow-800
+          {% else %}bg-blue-50 text-blue-800 border border-blue-200 dark:bg-blue-900/50 dark:text-blue-200 dark:border-blue-800{% endif %}">
           {{ message }}
         </div>
       {% endfor %}
@@ -102,14 +126,44 @@
   </main>
 
   {# ── Footer ─────────────────────────────────────────────── #}
-  <footer class="bg-white border-t border-gray-200 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-gray-400">
+  <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-gray-400 dark:text-gray-500">
       Sistema de Gestión de Turnos &mdash; Centro de Salud
     </div>
   </footer>
 
   {# HTMX #}
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+
+  {# Dark mode toggle script #}
+  <script>
+    (function() {
+      var toggle = document.getElementById('dark-mode-toggle');
+      var html = document.documentElement;
+      var sun = document.getElementById('sun-icon');
+      var moon = document.getElementById('moon-icon');
+
+      function updateIcons() {
+        if (html.classList.contains('dark')) {
+          sun.classList.add('hidden');
+          moon.classList.remove('hidden');
+        } else {
+          sun.classList.remove('hidden');
+          moon.classList.add('hidden');
+        }
+      }
+
+      updateIcons();
+
+      if (toggle) {
+        toggle.addEventListener('click', function() {
+          html.classList.toggle('dark');
+          localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+          updateIcons();
+        });
+      }
+    })();
+  </script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

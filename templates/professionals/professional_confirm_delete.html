@@ -3,16 +3,16 @@
 
 {% block content %}
 <div class="max-w-lg mx-auto text-center">
-  <h1 class="text-2xl font-bold text-gray-900 mb-4">
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
     {% if professional.is_active %}Desactivar Profesional{% else %}Activar Profesional{% endif %}
   </h1>
-  <p class="text-gray-600 mb-6">
+  <p class="text-gray-600 dark:text-gray-400 mb-6">
     ¿Estás seguro de que querés {% if professional.is_active %}desactivar{% else %}activar{% endif %}
     <strong>{{ professional.last_name }}, {{ professional.first_name }}</strong>?
   </p>
   <div class="flex justify-center space-x-3">
     <a href="{% url 'professionals:list' %}"
-       class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+       class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
       Cancelar
     </a>
     <form method="post" action="{% url 'professionals:toggle_active' professional.pk %}">

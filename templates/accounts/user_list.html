@@ -4,45 +4,45 @@
 {% block content %}
 <div class="max-w-5xl mx-auto">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Usuarios del Sistema</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Usuarios del Sistema</h1>
     <a href="{% url 'accounts:user_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
       + Nuevo Usuario
     </a>
   </div>
 
-  <div class="bg-white shadow rounded-lg overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rol</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Nombre</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Rol</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Estado</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200">
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
         {% for u in users %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm text-gray-900">{{ u.email }}</td>
-            <td class="px-6 py-4 text-sm text-gray-900">{{ u.get_full_name|default:"—" }}</td>
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{ u.email }}</td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{ u.get_full_name|default:"—" }}</td>
             <td class="px-6 py-4">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {% if u.role == 'admin' %}bg-purple-100 text-purple-800
-                {% elif u.role == 'secretary' %}bg-blue-100 text-blue-800
-                {% else %}bg-green-100 text-green-800{% endif %}">
+                {% if u.role == 'admin' %}bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200
+                {% elif u.role == 'secretary' %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
+                {% else %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% endif %}">
                 {{ u.get_role_display }}
               </span>
             </td>
             <td class="px-6 py-4">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {% if u.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {% if u.is_active %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
                 {{ u.is_active|yesno:"Activo,Inactivo" }}
               </span>
             </td>
             <td class="px-6 py-4 text-sm space-x-2">
-              <a href="{% url 'accounts:user_edit' u.pk %}" class="text-blue-600 hover:text-blue-800">Editar</a>
-              <a href="{% url 'accounts:user_toggle_active' u.pk %}" class="{% if u.is_active %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %}"
+              <a href="{% url 'accounts:user_edit' u.pk %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Editar</a>
+              <a href="{% url 'accounts:user_toggle_active' u.pk %}" class="{% if u.is_active %}text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300{% else %}text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300{% endif %}"
                  onclick="return confirm('¿Estás seguro de {% if u.is_active %}desactivar{% else %}activar{% endif %} a {{ u.email }}?')">
                 {{ u.is_active|yesno:"Desactivar,Activar" }}
               </a>
@@ -50,7 +50,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No hay usuarios registrados.</td>
+            <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No hay usuarios registrados.</td>
           </tr>
         {% endfor %}
       </tbody>

@@ -5,17 +5,17 @@
 
 {% block content %}
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold">Reportes y Estadísticas</h1>
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Reportes y Estadísticas</h1>
 
   {# ── Date filter form ───────────────────────────────────────────── #}
   <form method="get" class="flex gap-4 items-end">
     <div>
-      <label class="block text-sm font-medium mb-1">Desde</label>
-      <input type="date" name="date_from" value="{{ date_from }}" class="form-input">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Desde</label>
+      <input type="date" name="date_from" value="{{ date_from }}" class="form-input dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
     </div>
     <div>
-      <label class="block text-sm font-medium mb-1">Hasta</label>
-      <input type="date" name="date_to" value="{{ date_to }}" class="form-input">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hasta</label>
+      <input type="date" name="date_to" value="{{ date_to }}" class="form-input dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
     </div>
     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
       Aplicar

@@ -45,6 +45,11 @@ class AppointmentAdmin(admin.ModelAdmin):
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        """Override save to enforce model-level validation (V-001..V-007)."""
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
+
     def get_queryset(self, request):
         qs = self.model.all_objects.get_queryset()
         if not request.GET.get("show_deleted"):

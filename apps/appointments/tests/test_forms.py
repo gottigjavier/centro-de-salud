@@ -137,12 +137,11 @@ class AppointmentFormTest(BaseFormTest):
         self.assertFalse(form.is_valid())
         self.assertIn("anterior", str(form.errors).lower())
 
-    def test_overlap_detected(self):
-        """Same resource+professional+date+time as existing → overlap error."""
+    def test_same_slot_allowed_with_capacity(self):
+        """Same time as existing → allowed (max_per_slot=2, existing=1)."""
         data = {**self.valid_data, "start_time": "09:00", "end_time": "09:30"}
         form = self.make_form(data=data)
-        self.assertFalse(form.is_valid())
-        self.assertIn("superpone", str(form.errors).lower())
+        self.assertTrue(form.is_valid())
 
     def test_non_overlapping_valid(self):
         """Same day, different non-overlapping time → valid."""

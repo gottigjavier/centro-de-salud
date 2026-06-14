@@ -2,14 +2,32 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
+from apps.accounts.models import User
 from .models import DAYS_OF_WEEK, Professional, ProfessionalResourceAssignment
 
+INPUT_CLASS = "form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
 
 # ── Professional ────────────────────────────────────────────────────────
 
 
 class ProfessionalForm(forms.ModelForm):
-    """Formulario para crear/editar un profesional."""
+    """Formulario para crear/editar un profesional.
+
+    Crea o actualiza automáticamente un User con role="professional"
+    vinculado al profesional cuando se proporciona una contraseña.
+    """
+
+    password = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput(attrs={"class": INPUT_CLASS}),
+        required=False,
+        help_text="Requerido para crear un usuario del sistema.",
+    )
+    confirm_password = forms.CharField(
+        label="Confirmar contraseña",
+        widget=forms.PasswordInput(attrs={"class": INPUT_CLASS}),
+        required=False,
+    )
 
     class Meta:
         model = Professional
@@ -23,14 +41,31 @@ class ProfessionalForm(forms.ModelForm):
             "resources",
         ]
         widgets = {
-            "first_name": forms.TextInput(attrs={"class": "form-input"}),
-            "last_name": forms.TextInput(attrs={"class": "form-input"}),
-            "specialty": forms.Select(attrs={"class": "form-input"}),
-            "license_number": forms.TextInput(attrs={"class": "form-input"}),
-            "email": forms.EmailInput(attrs={"class": "form-input"}),
-            "phone": forms.TextInput(attrs={"class": "form-input"}),
-            "resources": forms.SelectMultiple(attrs={"class": "form-input"}),
+            "first_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "last_name": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "specialty": forms.Select(attrs={"class": INPUT_CLASS}),
+            "license_number": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "email": forms.EmailInput(attrs={"class": INPUT_CLASS}),
+            "phone": forms.TextInput(attrs={"class": INPUT_CLASS}),
+            "resources": forms.SelectMultiple(attrs={"class": INPUT_CLASS}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.pk:
+            # Create mode: password is required
+            self.fields["password"].required = True
+            self.fields["confirm_password"].required = True
+        else:
+            # Edit mode: password is optional, adjust help text
+            if self.instance.user_id:
+                self.fields["password"].help_text = (
+                    "Dejar en blanco para mantener la contraseña actual."
+                )
+            else:
+                self.fields["password"].help_text = (
+                    "Opcional. Crear cuenta de usuario para este profesional."
+                )
 
     def clean_license_number(self):
         """Validar que la matrícula sea única (case insensitive)."""
@@ -46,6 +81,61 @@ class ProfessionalForm(forms.ModelForm):
                 "Ya existe un profesional con esta matrícula."
             )
         return license_number
+
+    def clean(self):
+        cleaned = super().clean()
+        password = cleaned.get("password")
+        confirm = cleaned.get("confirm_password")
+
+        if password and confirm and password != confirm:
+            raise ValidationError("Las contraseñas no coinciden.")
+
+        # Si se proporciona contraseña, el email es obligatorio y único
+        email = cleaned.get("email")
+        if password:
+            if not email:
+                raise ValidationError(
+                    "El correo electrónico es obligatorio para crear una cuenta de usuario."
+                )
+            # Excluir el propio usuario en edición
+            user_qs = User.objects.filter(email__iexact=email)
+            if self.instance.pk and self.instance.user_id:
+                user_qs = user_qs.exclude(pk=self.instance.user_id)
+            if user_qs.exists():
+                raise ValidationError(
+                    "Ya existe un usuario con este correo electrónico."
+                )
+
+        return cleaned
+
+    def save(self, commit=True):
+        professional = super().save(commit=False)
+        password = self.cleaned_data.get("password")
+
+        if password:
+            user = professional.user
+            if not user:
+                user = User(
+                    email=professional.email,
+                    role="professional",
+                    first_name=professional.first_name,
+                    last_name=professional.last_name,
+                )
+                user.set_password(password)
+                user.save()
+                professional.user = user
+            else:
+                user.email = professional.email
+                user.first_name = professional.first_name
+                user.last_name = professional.last_name
+                user.set_password(password)
+                user.save()
+
+        if commit:
+            professional.save()
+            self._save_m2m()
+
+        return professional
 
 
 # ── ProfessionalResourceAssignment ──────────────────────────────────────
@@ -113,21 +203,21 @@ class ProfessionalResourceAssignmentForm(forms.ModelForm):
             "end_time",
         ]
         widgets = {
-            "resource": forms.Select(attrs={"class": "form-input"}),
+            "resource": forms.Select(attrs={"class": INPUT_CLASS}),
             "day_of_week": forms.Select(
-                choices=DAYS_OF_WEEK, attrs={"class": "form-input"}
+                choices=DAYS_OF_WEEK, attrs={"class": INPUT_CLASS}
             ),
             "start_date": forms.DateInput(
-                attrs={"class": "form-input", "type": "date"}
+                attrs={"class": INPUT_CLASS, "type": "date"}
             ),
             "end_date": forms.DateInput(
-                attrs={"class": "form-input", "type": "date"}
+                attrs={"class": INPUT_CLASS, "type": "date"}
             ),
             "start_time": forms.TimeInput(
-                attrs={"class": "form-input", "type": "time"}
+                attrs={"class": INPUT_CLASS, "type": "time"}
             ),
             "end_time": forms.TimeInput(
-                attrs={"class": "form-input", "type": "time"}
+                attrs={"class": INPUT_CLASS, "type": "time"}
             ),
         }
 

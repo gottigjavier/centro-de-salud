@@ -5,7 +5,7 @@
 <div class="space-y-6">
   {# ── Header ─────────────────────────────────────────────────────── #}
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-gray-900">Turnos</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Turnos</h1>
     {% if is_admin or user.role == 'secretary' %}
       <a href="{% url 'appointments:create' %}"
          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
@@ -16,29 +16,29 @@
 
   {# ── Professional warning ───────────────────────────────────────── #}
   {% if professional_warning %}
-    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-3 text-sm">
+    <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200 rounded-md p-3 text-sm">
       {{ professional_warning }}
     </div>
   {% endif %}
 
   {# ── Filter form ────────────────────────────────────────────────── #}
-  <form method="get" class="bg-white shadow rounded-lg p-4">
+  <form method="get" class="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
       <div>
-        <label for="filter-date-from" class="block text-xs font-medium text-gray-700 mb-1">Fecha desde</label>
+        <label for="filter-date-from" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha desde</label>
         <input type="date" name="date_from" id="filter-date-from"
                value="{{ current_filters.date_from }}"
-               class="form-input w-full">
+               class="form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
       </div>
       <div>
-        <label for="filter-date-to" class="block text-xs font-medium text-gray-700 mb-1">Fecha hasta</label>
+        <label for="filter-date-to" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha hasta</label>
         <input type="date" name="date_to" id="filter-date-to"
                value="{{ current_filters.date_to }}"
-               class="form-input w-full">
+               class="form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
       </div>
       <div>
-        <label for="filter-status" class="block text-xs font-medium text-gray-700 mb-1">Estado</label>
-        <select name="status" id="filter-status" class="form-input w-full">
+        <label for="filter-status" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
+        <select name="status" id="filter-status" class="form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
           <option value="">Todos</option>
           {% for value, label in status_choices %}
             <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>{{ label }}</option>
@@ -46,8 +46,8 @@
         </select>
       </div>
       <div>
-        <label for="filter-resource" class="block text-xs font-medium text-gray-700 mb-1">Recurso</label>
-        <select name="resource" id="filter-resource" class="form-input w-full">
+        <label for="filter-resource" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Recurso</label>
+        <select name="resource" id="filter-resource" class="form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
           <option value="">Todos</option>
           {% for r in resources %}
             <option value="{{ r.pk }}" {% if current_filters.resource == r.pk|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>
@@ -57,7 +57,7 @@
     </div>
     <div class="mt-3 flex justify-end space-x-2">
       <a href="{% url 'appointments:list' %}"
-         class="px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+         class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
         Limpiar
       </a>
       <button type="submit"
@@ -68,40 +68,40 @@
   </form>
 
   {# ── Tabla de turnos ─────────────────────────────────────────────── #}
-  <div class="bg-white shadow rounded-lg overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNI</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horario</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recurso</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profesional</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Paciente</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">DNI</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Horario</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recurso</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Profesional</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
         {% for appointment in appointments %}
-        <tr class="hover:bg-gray-50 transition-colors">
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
           <td class="px-6 py-4 whitespace-nowrap">
             <a href="{% url 'appointments:detail' appointment.pk %}"
-               class="text-sm font-medium text-blue-600 hover:text-blue-800">
+               class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
               {{ appointment.patient_name }}
             </a>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ appointment.patient_dni }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ appointment.date|date:"d/m/Y" }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ appointment.resource.name }}</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ appointment.professional }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ appointment.patient_dni }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ appointment.date|date:"d/m/Y" }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ appointment.resource.name }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ appointment.professional }}</td>
           <td class="px-6 py-4 whitespace-nowrap">
             {% include "appointments/partials/_status_badge.html" with status=appointment.status %}
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+          <td colspan="7" class="px-6 py-12 text-center text-gray-400 dark:text-gray-500">
             No hay turnos registrados.
           </td>
         </tr>
@@ -112,30 +112,30 @@
 
   {# ── Pagination ─────────────────────────────────────────────────── #}
   {% if appointments.has_other_pages %}
-  <div class="flex items-center justify-between bg-white shadow rounded-lg px-4 py-3">
-    <div class="text-sm text-gray-500">
+  <div class="flex items-center justify-between bg-white dark:bg-gray-800 shadow rounded-lg px-4 py-3">
+    <div class="text-sm text-gray-500 dark:text-gray-400">
       Página {{ appointments.number }} de {{ appointments.paginator.num_pages }}
       ({{ appointments.paginator.count }} turnos)
     </div>
     <div class="flex space-x-1">
       {% if appointments.has_previous %}
         <a href="?page=1{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
-           class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           &laquo; Primera
         </a>
         <a href="?page={{ appointments.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
-           class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Anterior
         </a>
       {% endif %}
 
       {% if appointments.has_next %}
         <a href="?page={{ appointments.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
-           class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Siguiente
         </a>
         <a href="?page={{ appointments.paginator.num_pages }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value|urlencode }}{% endif %}{% endfor %}"
-           class="px-3 py-1 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Última &raquo;
         </a>
       {% endif %}

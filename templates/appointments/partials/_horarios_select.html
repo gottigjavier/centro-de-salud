@@ -1,4 +1,4 @@
-<select name="slot" id="id_slots" class="form-input">
+<select name="slot" id="id_slots" class="form-input dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
   <option value="">-- Seleccioná un horario --</option>
   {% for start, end in slots %}
     <option value="{{ start|time:'H:i' }}"

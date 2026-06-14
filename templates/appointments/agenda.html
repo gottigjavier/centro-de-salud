@@ -6,7 +6,7 @@
 {% block content %}
 <div class="space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold">Agenda del {{ today|date:"l d/m/Y" }}</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Agenda del {{ today|date:"l d/m/Y" }}</h1>
     <div class="flex gap-2">
       {% if is_admin or is_secretary %}
       <a href="{% url 'appointments:create' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
@@ -17,7 +17,7 @@
   </div>
 
   {% if professional_warning %}
-  <div class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded">
+  <div class="bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-800 dark:text-yellow-200 px-4 py-3 rounded">
     {{ professional_warning }}
   </div>
   {% endif %}
@@ -25,7 +25,7 @@
   {% if is_admin or is_secretary %}
   <div class="flex gap-4 items-center">
     <form method="get" class="flex gap-2 items-center">
-      <select name="professional" class="form-input text-sm py-1" onchange="this.form.submit()">
+      <select name="professional" class="form-input text-sm py-1 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" onchange="this.form.submit()">
         <option value="">Todos los profesionales</option>
         {% for p in professionals %}
         <option value="{{ p.pk }}" {% if selected_professional == p.pk|stringformat:"s" %}selected{% endif %}>
@@ -33,11 +33,11 @@
         </option>
         {% endfor %}
       </select>
-      <noscript><button type="submit" class="px-3 py-1 bg-gray-200 rounded text-sm">Filtrar</button></noscript>
+      <noscript><button type="submit" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm">Filtrar</button></noscript>
     </form>
     <button hx-get="{% url 'appointments:agenda_table' %}{% if selected_professional %}?professional={{ selected_professional }}{% endif %}"
             hx-target="#agenda-tabla"
-            class="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300">
+            class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600">
       Refrescar
     </button>
   </div>

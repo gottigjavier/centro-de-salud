@@ -60,7 +60,7 @@ def professional_detail(request, pk):
     assignments = ProfessionalResourceAssignment.objects.filter(
         professional=professional, is_active=True
     ).order_by("day_of_week", "start_time")
-    assignment_form = (
+    form = (
         ProfessionalResourceAssignmentForm(professional=professional)
         if es_admin(request.user)
         else None
@@ -68,7 +68,7 @@ def professional_detail(request, pk):
     return render(request, "professionals/professional_detail.html", {
         "professional": professional,
         "assignments": assignments,
-        "assignment_form": assignment_form,
+        "form": form,
         "is_admin": es_admin(request.user),
     })
 

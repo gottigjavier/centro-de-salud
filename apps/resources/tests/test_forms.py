@@ -30,7 +30,7 @@ class ResourceFormTest(TestCase):
             "name": "Consultorio 1",
             "type": "office",
             "location": "Planta baja",
-            "max_capacity": 2,
+            "max_appointments_per_day": 50,
             "description": "Consultorio de atención general",
         }
 

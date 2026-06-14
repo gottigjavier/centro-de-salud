@@ -177,9 +177,11 @@ class HorariosPorProfesionalHTMXTest(BaseHTMXTest):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "No hay horarios disponibles")
 
-    def test_slots_exclude_booked(self):
-        """Existing appointment at 09:00-09:30 → that slot is excluded."""
-        # Create a booked appointment
+    def test_slot_available_with_capacity(self):
+        """1 appointment, max_per_day=5 → day has capacity, all slots shown."""
+        self.resource.max_appointments_per_day = 5
+        self.resource.save(update_fields=["max_appointments_per_day"])
+
         Appointment.objects.create(
             resource=self.resource,
             professional=self.professional,
@@ -199,10 +201,48 @@ class HorariosPorProfesionalHTMXTest(BaseHTMXTest):
             "resource_id": self.resource.pk,
         })
         self.assertEqual(response.status_code, 200)
-        # 09:00 is booked → should NOT be in response
-        self.assertNotContains(response, 'data-start-time="09:00"')
-        # 08:00 should still be available
+        # 1 booking with capacity 2 → 09:00 IS available
+        self.assertContains(response, 'data-start-time="09:00"')
         self.assertContains(response, 'data-start-time="08:00"')
+
+    def test_slot_excluded_when_full(self):
+        """2 appointments, max_per_day=2 → day is full, no slots available."""
+        # Set daily limit on resource (default is None = unlimited)
+        self.resource.max_appointments_per_day = 2
+        self.resource.save(update_fields=["max_appointments_per_day"])
+
+        Appointment.objects.create(
+            resource=self.resource,
+            professional=self.professional,
+            date=self.today,
+            start_time="09:00",
+            end_time="09:30",
+            patient_name="Patient One",
+            patient_dni="11111111",
+            status=AppointmentStatus.SCHEDULED,
+        )
+        Appointment.objects.create(
+            resource=self.resource,
+            professional=self.professional,
+            date=self.today,
+            start_time="09:00",
+            end_time="09:30",
+            patient_name="Patient Two",
+            patient_dni="22222222",
+            status=AppointmentStatus.SCHEDULED,
+        )
+        self._login(self.admin)
+        url = reverse(
+            "appointments:htmx_horarios", args=[self.professional.pk]
+        )
+        response = self._htmx_get(url, {
+            "date": self.today.isoformat(),
+            "resource_id": self.resource.pk,
+        })
+        self.assertEqual(response.status_code, 200)
+        # 2 appointments, max_per_day=2 → daily limit reached → NO slots available
+        self.assertNotContains(response, 'data-start-time')
+        self.assertContains(response, "No hay horarios disponibles")
 
     def test_invalid_date(self):
         """Bad date → 'Fecha inválida'."""

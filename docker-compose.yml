@@ -4,7 +4,7 @@ version: "3.9"
 
 services:
   db:
-    image: postgres:16-alpine
+    image: docker.io/postgres:16-alpine
     container_name: turnero-db
     restart: unless-stopped
     volumes:
@@ -33,6 +33,10 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.base
+      - DATABASE_URL=postgresql://turnero:turnero_pass@db:5432/turnero_db
+      - DJANGO_DEBUG=False
     volumes:
       - .:/app
       - static_volume:/app/staticfiles

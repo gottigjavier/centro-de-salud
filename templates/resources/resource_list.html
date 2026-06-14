@@ -4,7 +4,7 @@
 {% block content %}
 <div class="max-w-5xl mx-auto">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Recursos</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Recursos</h1>
     {% if is_admin %}
       <a href="{% url 'resources:create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
         + Nuevo Recurso
@@ -12,37 +12,37 @@
     {% endif %}
   </div>
 
-  <div class="bg-white shadow rounded-lg overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
+  <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ubicación</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Capacidad</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Activo</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Nombre</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Tipo</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ubicación</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Capacidad</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Activo</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Acciones</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200">
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
         {% for r in resources %}
-          <tr class="hover:bg-gray-50 {% if not r.is_active %}opacity-50{% endif %}">
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ r.name }}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">{{ r.get_type_display }}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">{{ r.location|default:"—" }}</td>
-            <td class="px-6 py-4 text-sm text-gray-500">{{ r.max_capacity }}</td>
+          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 {% if not r.is_active %}opacity-50{% endif %}">
+            <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">{{ r.name }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ r.get_type_display }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ r.location|default:"—" }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ r.max_appointments_per_day|default:"Ilimitado" }}</td>
             <td class="px-6 py-4">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {% if r.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {% if r.is_active %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% endif %}">
                 {{ r.is_active|yesno:"Activo,Inactivo" }}
               </span>
             </td>
             <td class="px-6 py-4 text-sm space-x-2">
-              <a href="{% url 'resources:detail' r.pk %}" class="text-blue-600 hover:text-blue-800">Ver</a>
+              <a href="{% url 'resources:detail' r.pk %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Ver</a>
               {% if is_admin %}
-                <a href="{% url 'resources:update' r.pk %}" class="text-indigo-600 hover:text-indigo-800">Editar</a>
+                <a href="{% url 'resources:update' r.pk %}" class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">Editar</a>
                 <a href="{% url 'resources:toggle_active' r.pk %}"
-                   class="{% if r.is_active %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %}">
+                   class="{% if r.is_active %}text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300{% else %}text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300{% endif %}">
                   {{ r.is_active|yesno:"Desactivar,Activar" }}
                 </a>
               {% endif %}
@@ -50,7 +50,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="6" class="px-6 py-8 text-center text-gray-500">No hay recursos registrados.</td>
+            <td colspan="6" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No hay recursos registrados.</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -61,18 +61,18 @@
     <div class="mt-4 flex justify-center items-center gap-2">
       {% if resources.has_previous %}
         <a href="?page={{ resources.previous_page_number }}"
-           class="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Anterior
         </a>
       {% endif %}
 
-      <span class="text-sm text-gray-600">
+      <span class="text-sm text-gray-600 dark:text-gray-400">
         Página {{ resources.number }} de {{ resources.paginator.num_pages }}
       </span>
 
       {% if resources.has_next %}
         <a href="?page={{ resources.next_page_number }}"
-           class="px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+           class="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           Siguiente
         </a>
       {% endif %}

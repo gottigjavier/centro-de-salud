@@ -15,5 +15,9 @@
   "type": "commonjs",
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.11"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.1",
+    "tailwindcss": "^4.3.1"
   }
 }

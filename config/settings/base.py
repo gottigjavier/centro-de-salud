@@ -83,28 +83,48 @@ ASGI_APPLICATION = "config.asgi.application"
 
 # ── Database ────────────────────────────────────────────────────────────────
 # Default: PostgreSQL via DATABASE_URL.
-# Override in local.py for SQLite during fast dev iterations.
-DATABASE_URL = config("DATABASE_URL", default=None)
-if DATABASE_URL:
-    import re
+# Falls back to SQLite for local dev when DATABASE_URL is not set.
+# Uses dj-database-url if available (recommended for production), otherwise
+# falls back to simple regex parsing for basic PostgreSQL URLs.
+try:
+    import dj_database_url
 
-    match = re.match(
-        r"postgres(?:ql)?://(.+):(.+)@(.+):(\d+)/(.+)", DATABASE_URL
-    )
-    if match:
-        user, password, host, port, name = match.groups()
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": name,
-                "USER": user,
-                "PASSWORD": password,
-                "HOST": host,
-                "PORT": port,
-                "ATOMIC_REQUESTS": True,
-                "CONN_MAX_AGE": 600,
+    DATABASES = {
+        "default": dj_database_url.config(
+            default="sqlite:///" + str(BASE_DIR / "dev.db"),
+            conn_max_age=600,
+        )
+    }
+except ImportError:
+    # Fallback when dj-database-url is not installed (e.g. fresh dev env)
+    DATABASE_URL = config("DATABASE_URL", default=None)
+    if DATABASE_URL:
+        import re
+
+        match = re.match(
+            r"postgres(?:ql)?://(.+):(.+)@(.+):(\d+)/(.+)", DATABASE_URL
+        )
+        if match:
+            user, password, host, port, name = match.groups()
+            DATABASES = {
+                "default": {
+                    "ENGINE": "django.db.backends.postgresql",
+                    "NAME": name,
+                    "USER": user,
+                    "PASSWORD": password,
+                    "HOST": host,
+                    "PORT": port,
+                    "ATOMIC_REQUESTS": True,
+                    "CONN_MAX_AGE": 600,
+                }
             }
-        }
+        else:
+            DATABASES = {
+                "default": {
+                    "ENGINE": "django.db.backends.sqlite3",
+                    "NAME": BASE_DIR / "dev.db",
+                }
+            }
     else:
         DATABASES = {
             "default": {
@@ -112,13 +132,6 @@ if DATABASE_URL:
                 "NAME": BASE_DIR / "dev.db",
             }
         }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "dev.db",
-        }
-    }
 
 # ── Auth ────────────────────────────────────────────────────────────────────
 AUTH_USER_MODEL = "accounts.User"

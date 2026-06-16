@@ -1,0 +1,36 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "name": "centro-salud-turnos",
+
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.12"
+      }
+    }
+  ],
+
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ],
+
+  "functions": {
+    "api/index.py": {
+      "memory": 256,
+      "maxDuration": 30
+    }
+  },
+
+  "buildCommand": "bash vercel_build.sh"
+}

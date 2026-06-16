@@ -1,6 +1,7 @@
 # Core
 Django==5.2.15
 psycopg[binary]==3.2.4
+dj-database-url==2.3.0
 
 # Auth
 django-allauth[mfa]==65.3.1

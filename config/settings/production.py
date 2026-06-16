@@ -31,7 +31,7 @@ SECURE_HSTS_PRELOAD = True
 # ── Hosts ────────────────────────────────────────────────────────────────────
 ALLOWED_HOSTS = config(
     "DJANGO_ALLOWED_HOSTS",
-    default=".vercel.app,.now.sh,localhost,127.0.0.1",
+    default=".vercel.app,.now.sh,localhost,127.0.0.1,centro-de-salud.vercel.app/",
     cast=Csv(),
 )
 

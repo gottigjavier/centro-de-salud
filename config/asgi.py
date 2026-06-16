@@ -26,10 +26,8 @@ def _running_on_serverless() -> bool:
     )
 
 
-if _running_on_serverless():
-    os.environ.setdefault(
-        "DJANGO_SETTINGS_MODULE", "config.settings.production"
-    )
+if _running_on_serverless() or os.environ.get("DATABASE_URL"):
+    os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.production"
 else:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 

@@ -46,11 +46,16 @@ ALLOWED_HOSTS = config(
 # conn_max_age=0 porque en serverless no hay conexiones persistentes útiles.
 # Con transaction pooling de Neon, cada request debe devolver la conexión
 # al pool inmediatamente.
-DATABASES["default"] = dj_database_url.config(
-    default=config("DATABASE_URL"),
+#
+# NOTA: dj_database_url.config() ya lee DATABASE_URL del environment.
+# No necesita default porque en producción DEBE estar configurada.
+# Si no hay DATABASE_URL, db_config es {} y mantenemos lo que venga de base.py.
+db_config = dj_database_url.config(
     conn_max_age=0,
     ssl_require=True,
 )
+if db_config:
+    DATABASES["default"] = db_config
 
 # ── Static files (Whitenoise) ────────────────────────────────────────────────
 # Ya configurado en base.py con CompressedManifestStaticFilesStorage.

@@ -1,0 +1,134 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n allauth account %}
+{% block head_title %}
+{% trans "Iniciar Sesión" %}
+{% endblock head_title %}
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center py-12 px-4">
+  <div class="max-w-md w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Sistema de Turnos</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Centro de Salud</p>
+      <hr class="my-6 border-gray-200 dark:border-gray-700">
+      <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Iniciar Sesión</h2>
+    </div>
+
+    {% if not SOCIALACCOUNT_ONLY %}
+      <form method="post" action="{% url 'account_login' %}" class="space-y-4">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 rounded-md p-3 text-sm">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        {% comment %}
+          Renderizamos cada campo a mano para poder aplicar las clases de
+          Tailwind, siguiendo la misma convención que el resto del proyecto
+          (ver apps/accounts/forms.py — INPUT_CLASS).
+        {% endcomment %}
+
+        {% with input_class="form-input w-full dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500" %}
+          {# ── Email ──────────────────────────────────────────── #}
+          <div>
+            <label for="{{ form.login.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Correo electrónico
+            </label>
+            <input type="email"
+                   name="login"
+                   id="{{ form.login.id_for_label }}"
+                   placeholder="tu@correo.com"
+                   autocomplete="email"
+                   required
+                   class="{{ input_class }}"
+                   {% if form.login.value %}value="{{ form.login.value }}"{% endif %}>
+            {% if form.login.errors %}
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.login.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          {# ── Contraseña ─────────────────────────────────────── #}
+          <div>
+            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Contraseña
+            </label>
+            <input type="password"
+                   name="password"
+                   id="{{ form.password.id_for_label }}"
+                   placeholder="••••••••"
+                   autocomplete="current-password"
+                   required
+                   class="{{ input_class }}">
+            {% if form.password.errors %}
+              <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.password.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          {# ── Recordarme ─────────────────────────────────────── #}
+          {% if form.remember %}
+            <div class="flex items-center">
+              <input type="checkbox"
+                     name="remember"
+                     id="{{ form.remember.id_for_label }}"
+                     class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+              <label for="{{ form.remember.id_for_label }}" class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                Recordarme
+              </label>
+            </div>
+          {% endif %}
+
+          {# ── Redirect field (si allauth lo pasa) ────────────── #}
+          {{ redirect_field }}
+        {% endwith %}
+
+        {# ── Botón submit ─────────────────────────────────────── #}
+        <button type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+          Iniciar Sesión
+        </button>
+      </form>
+
+      {# ── Link a registro ───────────────────────────────────── #}
+      {% url 'account_signup' as signup_url %}
+      {% if signup_url %}
+        <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          ¿No tenés cuenta?
+          <a href="{{ signup_url }}" class="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+            Registrate
+          </a>
+        </p>
+      {% endif %}
+    {% endif %}
+
+    {# ── Passkey / Código (si está habilitado) ───────────────── #}
+    {% if LOGIN_BY_CODE_ENABLED or PASSKEY_LOGIN_ENABLED %}
+      <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        {% if PASSKEY_LOGIN_ENABLED %}
+          <form method="post" action="{% url 'account_login' %}" id="mfa_login">
+            {% csrf_token %}
+            {{ redirect_field }}
+          </form>
+          <button type="submit" form="mfa_login"
+                  id="passkey_login"
+                  class="w-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-4 rounded-md transition-colors">
+            Iniciar sesión con passkey
+          </button>
+        {% endif %}
+        {% if LOGIN_BY_CODE_ENABLED %}
+          <a href="{{ request_login_code_url }}"
+             class="mt-2 block w-full text-center bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2.5 px-4 rounded-md transition-colors">
+            Enviarme un código de acceso
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock content %}
+{% block extra_body %}
+  {{ block.super }}
+  {% if PASSKEY_LOGIN_ENABLED %}
+    {% include "mfa/webauthn/snippets/login_script.html" with button_id="passkey_login" %}
+  {% endif %}
+{% endblock %}

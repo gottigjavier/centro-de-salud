@@ -3,15 +3,16 @@ from decouple import Csv, config
 
 from .base import *  # noqa: F401, F403
 
-DEBUG = False
+# DEBUG=True para servir estáticos en desarrollo. Vercel usa production.py.
+DEBUG = True
 
 INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
 MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405
 INTERNAL_IPS = ["127.0.0.1", "localhost"]
 
-# ⚠️ Parche para Vercel: cuando deploya sin detectar correctamente el entorno,
-# puede quedar usando local.py. Esto asegura que los dominios de Vercel
-# sean aceptados aunque los settings de desarrollo estén activos.
+# Los dominios de Vercel se aceptan por las dudas de que el entorno se
+# confunda, pero local.py NO se usa nunca en el deploy (api/index.py y
+# vercel_build.sh usan config.settings.production explícitamente).
 ALLOWED_HOSTS = config(
     "DJANGO_ALLOWED_HOSTS",
     default="localhost,127.0.0.1,.vercel.app,.now.sh",

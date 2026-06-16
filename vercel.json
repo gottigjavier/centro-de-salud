@@ -3,6 +3,8 @@
   "version": 2,
   "name": "centro-salud-turnos",
 
+  "buildCommand": "bash vercel_build.sh",
+
   "builds": [
     {
       "src": "api/index.py",

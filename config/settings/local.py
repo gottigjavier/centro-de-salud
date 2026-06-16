@@ -3,7 +3,7 @@ from decouple import Csv, config
 
 from .base import *  # noqa: F401, F403
 
-DEBUG = True
+DEBUG = False
 
 INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
 MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")  # noqa: F405

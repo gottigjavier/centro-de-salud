@@ -20,6 +20,9 @@
   {# Tailwind CSS: built with django-tailwind-cli (or manual download) #}
   <link rel="stylesheet" href="{% static 'theme/css/tailwind.css' %}">
 
+  {# Favicon #}
+  <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+
   {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
